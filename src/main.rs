@@ -1,4 +1,5 @@
 extern crate num_traits;
+
 mod energy;
 mod montecarlo;
 mod particle;
@@ -6,36 +7,25 @@ mod input;
 mod output;
 mod analysis;
 
-use clap::error::ContextValue::String;
-use crate::energy::Coulomb;
 use clap::Parser;
 use average;
 use average::Estimate;
-use crate::analysis::Moments;
+use std::error::Error;
+use analysis::Moments;
+use crate::particle::generate_particles;
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = input::Args::parse();
-    let radius: f64 = args.radius;
-    let num_particles = args.num_particles;
 
-    let mut particles: Vec<particle::Particle> =
-        vec![particle::Particle::new(radius, 0.0); num_particles];
-
-    if args.num_cations + args.num_anions > args.num_particles {
-        // likely wrong way to go...
-        panic!("number of charged ions exceeds total number of particles")
-    }
-    // cations in the front; anions in the back; then random positions.
-    particles.iter_mut().take(args.num_cations).for_each(|p| p.charge = 1.0);
-    particles.iter_mut().rev().take(args.num_anions).for_each(|p| p.charge = -1.0);
-    particles.iter_mut().for_each(|p| p.random_angles());
+    let mut particles = generate_particles(args.radius, args.num_total,
+                                           args.num_plus, args.num_minus);
 
     let pair_potential = energy::Coulomb::new(args.bjerrum_length);
     let mut rng = rand::thread_rng();
     let mut acceptance_ratio = average::Mean::new();
     let mut moments = Moments::new();
 
-    // main MC loop
+    // main Monte Carlo loop
     for _ in 0..args.steps {
         let accepted = montecarlo::propagate(&pair_potential, &mut particles, &mut rng);
         if accepted {
@@ -50,9 +40,6 @@ fn main() {
     println!("fraction accepted = {:.3}", acceptance_ratio.mean());
     moments.print();
 
-    if args.file.ends_with(".xyz") {
-        output::save_xyzfile(&args.file, &particles);
-    } else if args.file.ends_with(".pqr") {
-        output::save_pqrfile(&args.file, &particles);
-    }
+    output::save_coordinates(&args.file, &particles)?;
+    Ok(())
 }

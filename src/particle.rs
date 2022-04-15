@@ -17,9 +17,13 @@ fn spherical_to_cartesian<T: Float>(phi: T, theta: T, radius: T) -> Vector3<T> {
 #[derive(Clone, Debug)]
 pub struct Particle {
     pub charge: f64,
-    pub phi: f64,   // 0 ≤ φ < 2π (ISO standard)
-    pub theta: f64, // 0 ≤ θ ≤ π (ISO standard)
-    pub radius: f64, // spherical coordindate radius
+    /// 0 ≤ φ < 2π (ISO standard)
+    pub phi: f64,
+    /// 0 ≤ θ ≤ π (ISO standard)
+    pub theta: f64,
+    /// spherical coordinate radius
+    pub radius: f64,
+    /// cartesian position (automatically updated)
     pub position: nalgebra::Vector3<f64>,
 }
 
@@ -43,7 +47,7 @@ impl Particle {
     }
 
     /// Set angles and update cartesian coordinate
-    pub fn set_angles(&mut self, phi : f64, theta : f64) {
+    pub fn set_angles(&mut self, phi: f64, theta: f64) {
         self.phi = phi;
         self.theta = theta;
         self.update_cartesian();
@@ -64,4 +68,19 @@ impl Particle {
         // let new_theta = f64::acos(2.0 * random::<f64>() - 1.0);
         self.set_angles(new_phi, new_theta);
     }
+}
+
+/// Generate particle vector with charged and neutral particles
+pub fn generate_particles(radius : f64, num_total: usize, num_plus: usize, num_minus: usize) -> Vec<Particle> {
+    let mut particles: Vec<Particle> =
+        vec![Particle::new(radius, 0.0); num_total];
+
+    if num_plus + num_minus > num_total {
+        panic!("number of charged ions exceeds total number of particles")
+    }
+    // cations in the front; anions in the back; then random positions:
+    particles.iter_mut().take(num_plus).for_each(|i| i.charge = 1.0);
+    particles.iter_mut().rev().take(num_minus).for_each(|i| i.charge = -1.0);
+    particles.iter_mut().for_each(|i| i.random_angles());
+    particles
 }

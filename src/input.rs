@@ -16,15 +16,15 @@ pub struct Args {
 
     /// Total number of particles
     #[clap(short = 'N', long = "nparticles")]
-    pub num_particles: usize,
+    pub num_total: usize,
 
     /// Number of positive (+1e) particles
     #[clap(short = 'p', long = "plus", default_value_t = 20)]
-    pub num_cations: usize,
+    pub num_plus: usize,
 
     /// Number of negative (-1e) particles
     #[clap(short = 'm', long = "minus", default_value_t = 29)]
-    pub num_anions: usize,
+    pub num_minus: usize,
 
     /// Bjerrum length (Å)
     #[clap(short, long, default_value_t = 7.0)]
