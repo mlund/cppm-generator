@@ -3,7 +3,6 @@ use crate::particle::Particle;
 use rand::random;
 use rand::rngs::ThreadRng;
 use rand::Rng;
-use rand::seq::SliceRandom;
 use rand::prelude::IteratorRandom;
 use itertools::Itertools;
 

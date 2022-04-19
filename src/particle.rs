@@ -60,9 +60,12 @@ impl Particle {
 
     pub fn displace_angle(&mut self, dp_phi: f64, dp_theta: f64) {
         // see https://mathworld.wolfram.com/SpherePointPicking.html
+        // https://doi.org/10.1016/j.amc.2019.124670
 
-        let new_phi = self.phi + dp_phi * f64::sin(2.0 * PI * random::<f64>());
-        let new_theta = self.theta + dp_theta * f64::acos(2.0 * random::<f64>() - 1.0);
+        //let random_sign = if random::<f64>() < 0.5 { 1.0 } else { -1.0 };
+
+        let new_phi = self.phi + f64::acos(dp_phi * (2.0 * random::<f64>() - 1.0));
+        let new_theta = self.theta + dp_theta * (random::<f64>() - 1.0);
 
         //let new_phi = 2.0 * PI * random::<f64>();
         // let new_theta = f64::acos(2.0 * random::<f64>() - 1.0);

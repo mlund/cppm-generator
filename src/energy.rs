@@ -27,7 +27,7 @@ impl Coulomb {
 impl PairPotential for Coulomb {
     fn energy(&self, particle_1: &Particle, particle_2: &Particle) -> f64 {
         let distance = (particle_1.position - particle_2.position).norm();
-        f64::powi(4.0 / distance, 12)
+        4.0 * f64::powi(4.0 / distance, 12)
             + self.bjerrum_length * particle_1.charge * particle_2.charge / distance
     }
 }
