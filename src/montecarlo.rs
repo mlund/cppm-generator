@@ -37,7 +37,7 @@ fn displace_random_particle<T: PairPotential>(
     let index = rng.gen_range(0..particles.len());
     let particle_backup = particles[index].clone();
     let old_energy = crate::energy::particle_energy(pair_potential, &particles, index);
-    particles[index].displace_angle(0.05, 0.05);
+    particles[index].displace_angle(3.1416 / 1.99, 0.01);
     let new_energy = crate::energy::particle_energy(pair_potential, &particles, index);
     let energy_change = new_energy - old_energy;
     if !accept_move(energy_change) {
