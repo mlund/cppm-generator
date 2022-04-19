@@ -13,32 +13,6 @@ fn spherical_to_cartesian<T: Float>(phi: T, theta: T, radius: T) -> Vector3<T> {
     )
 }
 
-fn anint(x: f64) -> f64 {
-    let i = if x > 0.0 { (x + 0.5) as i32 } else { (x - 0.5) as i32 };
-    i as f64
-}
-
-fn displace_linear(angle : f64, dp : f64) -> f64 {
-    angle + (random::<f64>() - 0.5) * dp
-}
-
-fn displace_cos(angle : f64, dp : f64) -> f64 {
-    let sign = if random::<f64>() < 0.5 { 1.0 } else { -1.0 };
-    let cosdp = f64::cos(dp);
-    let mut _cos = f64::cos(angle) + (2.0 * random::<f64>() - 1.0) * cosdp;
-    _cos = _cos - anint(_cos / 2.0) * 2.0; // see Allen + Tildesley 1st ed., p 133
-    f64::acos(_cos) * sign
-}
-
-fn displace_sin(angle : f64, dp : f64) -> f64 {
-    let sign = if random::<f64>() < 0.5 { 1.0 } else { -1.0 };
-    let sindp = f64::sin(dp);
-    let mut _sin = f64::sin(angle) + (2.0 * random::<f64>() - 1.0) * sindp;
-    _sin = _sin - anint(_sin / 2.0) * 2.0;
-    f64::asin(_sin) * sign
-}
-
-
 #[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct Particle {
@@ -81,22 +55,19 @@ impl Particle {
 
     /// Generate random angles and update cartesian coordinate
     pub fn random_angles(&mut self) {
-        self.set_angles(2.0 * PI * random::<f64>(), PI * random::<f64>());
+        // see https://mathworld.wolfram.com/SpherePointPicking.html
+        let phi = f64::acos(2.0 * random::<f64>() - 1.0);
+        let theta = 2.0 * PI * random::<f64>();
+        self.set_angles(phi, theta);
     }
 
-    pub fn displace_angle(&mut self, dp_phi: f64, dp_theta: f64) {
+    pub fn displace_angle(&mut self, dp : f64) {
         // see https://mathworld.wolfram.com/SpherePointPicking.html
         // https://doi.org/10.1016/j.amc.2019.124670
-
-        let random_sign = if random::<f64>() < 0.5 { 1.0 } else { -1.0 };
-
-        // cos PI / 1.99
-        // sin 0.01
-        let new_phi= displace_cos(self.phi, PI / 1.99);
-        let new_theta = displace_linear(self.theta, 0.1);
-
-        //let new_phi = 2.0 * PI * random::<f64>();
-        // let new_theta = f64::acos(2.0 * random::<f64>() - 1.0);
+        let random_angle = 2.0 * PI * random::<f64>();
+        let random_length = dp * random::<f64>();
+        let new_phi = self.phi + f64::sin(random_angle) * random_length;
+        let new_theta = self.theta + f64::cos(random_angle) * random_length;
         self.set_angles(new_phi, new_theta);
     }
 }
