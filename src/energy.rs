@@ -6,6 +6,10 @@ pub trait PairPotential {
     fn energy(&self, particle_1: &Particle, particle_2: &Particle) -> f64;
 }
 
+pub trait EnergyTerm {
+    fn energy(&self, particles: &Vec<Particle>, indices: &Vec<usize>) -> f64;
+}
+
 /// Coulomb interaction + additional soft-core repulsion
 #[allow(dead_code)]
 pub struct Coulomb {
@@ -19,6 +23,7 @@ impl Coulomb {
         Coulomb { bjerrum_length }
     }
 }
+
 impl PairPotential for Coulomb {
     fn energy(&self, particle_1: &Particle, particle_2: &Particle) -> f64 {
         let distance = (particle_1.position - particle_2.position).norm();
@@ -52,6 +57,17 @@ pub fn particle_energy<T: PairPotential>(
     for (i, particle) in particles.iter().enumerate() {
         if i != index {
             energy += pair_potential.energy(particle, &particles[index]);
+        }
+    }
+    energy
+}
+
+pub fn swap_move_energy<T: PairPotential>(pair_potential: &T, particles: &Vec<Particle>, first: usize, second: usize) -> f64 {
+    let mut energy: f64 = pair_potential.energy(&particles[first], &particles[second]);
+    for (i, particle) in particles.iter().enumerate() {
+        if i != first && i != second {
+            energy += pair_potential.energy(&particle, &particles[first])
+                + pair_potential.energy(&particle, &particles[second]);
         }
     }
     energy
