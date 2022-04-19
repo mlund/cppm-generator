@@ -21,13 +21,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                                            args.num_plus, args.num_minus);
 
     let pair_potential = energy::Coulomb::new(args.bjerrum_length);
+    let hamiltonian = energy::Nonbonded::new(pair_potential);
     let mut rng = rand::thread_rng();
     let mut acceptance_ratio = average::Mean::new();
     let mut moments = Moments::new();
 
     // main Monte Carlo loop
     for _ in 0..args.steps {
-        let accepted = montecarlo::propagate(&pair_potential, &mut particles, &mut rng);
+        let accepted = montecarlo::propagate(&hamiltonian, &mut particles, &mut rng);
         if accepted {
             acceptance_ratio.add(1.0);
         } else {

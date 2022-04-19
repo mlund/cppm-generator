@@ -6,6 +6,7 @@ pub trait PairPotential {
     fn energy(&self, particle_1: &Particle, particle_2: &Particle) -> f64;
 }
 
+/// Trait for terms in the Hamiltonian (nonbonded etc.)
 pub trait EnergyTerm {
     fn energy(&self, particles: &Vec<Particle>, indices: &Vec<usize>) -> f64;
 }
@@ -32,43 +33,62 @@ impl PairPotential for Coulomb {
     }
 }
 
-/// Sum all pair interactions in vector of particles (kT)
 #[allow(dead_code)]
-pub fn system_energy<T: PairPotential>(pair_potential: &T, particles: &Vec<Particle>) -> f64 {
-    let mut energy = 0.0;
-    for (i, particle_1) in particles.iter().enumerate() {
-        for (j, particle_2) in particles.iter().enumerate() {
-            if i > j {
-                energy += pair_potential.energy(particle_1, particle_2);
+pub struct Nonbonded<T: PairPotential> {
+    pair_potential: T,
+}
+
+impl<T: PairPotential> Nonbonded<T> {
+    pub fn new(pair_potential: T) -> Self {
+        Self {
+            pair_potential
+        }
+    }
+    /// Sum all pair interactions in vector of particles (kT)
+    #[allow(dead_code)]
+    fn system_energy(&self, particles: &Vec<Particle>) -> f64 {
+        let mut energy = 0.0;
+        for (i, particle_1) in particles.iter().enumerate() {
+            for (j, particle_2) in particles.iter().enumerate() {
+                if i > j {
+                    energy += self.pair_potential.energy(particle_1, particle_2);
+                }
             }
         }
+        energy
     }
-    energy
+    /// Sum interaction energy of a single particle with all the rest (kT)
+    #[allow(dead_code)]
+    fn particle_energy(&self, particles: &Vec<Particle>, index: usize) -> f64 {
+        let mut energy = 0.0;
+        for (i, particle) in particles.iter().enumerate() {
+            if i != index {
+                energy += self.pair_potential.energy(particle, &particles[index]);
+            }
+        }
+        energy
+    }
+
+    fn swap_move_energy(&self, particles: &Vec<Particle>, first: usize, second: usize) -> f64 {
+        let mut energy: f64 = self.pair_potential.energy(&particles[first], &particles[second]);
+        for (i, particle) in particles.iter().enumerate() {
+            if i != first && i != second {
+                energy += self.pair_potential.energy(&particle, &particles[first])
+                    + self.pair_potential.energy(&particle, &particles[second]);
+            }
+        }
+        energy
+    }
 }
 
-/// Sum interaction energy of a single particle with all the rest (kT)
-#[allow(dead_code)]
-pub fn particle_energy<T: PairPotential>(
-    pair_potential: &T,
-    particles: &Vec<Particle>,
-    index: usize,
-) -> f64 {
-    let mut energy = 0.0;
-    for (i, particle) in particles.iter().enumerate() {
-        if i != index {
-            energy += pair_potential.energy(particle, &particles[index]);
+/// @todo should return error
+impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
+    fn energy(&self, particles: &Vec<Particle>, indices: &Vec<usize>) -> f64 {
+        if indices.len() == 1 {
+            return self.particle_energy(particles, indices[0]);
+        } else if indices.len() == 2 {
+            return self.swap_move_energy(particles, indices[0], indices[1]);
         }
+        0.0
     }
-    energy
-}
-
-pub fn swap_move_energy<T: PairPotential>(pair_potential: &T, particles: &Vec<Particle>, first: usize, second: usize) -> f64 {
-    let mut energy: f64 = pair_potential.energy(&particles[first], &particles[second]);
-    for (i, particle) in particles.iter().enumerate() {
-        if i != first && i != second {
-            energy += pair_potential.energy(&particle, &particles[first])
-                + pair_potential.energy(&particle, &particles[second]);
-        }
-    }
-    energy
 }
