@@ -12,6 +12,7 @@ use average;
 use average::Estimate;
 use std::error::Error;
 use analysis::Moments;
+use crate::montecarlo::{DisplaceParticle, SwapCharges};
 use crate::particle::generate_particles;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -26,9 +27,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut acceptance_ratio = average::Mean::new();
     let mut moments = Moments::new();
 
+    let mut propagator = montecarlo::Propagator::new();
+    propagator.push(DisplaceParticle::default());
+    propagator.push(SwapCharges::default());
+
     // main Monte Carlo loop
     for _ in 0..args.steps {
-        let accepted = montecarlo::propagate(&hamiltonian, &mut particles, &mut rng);
+        let accepted = propagator.propagate(&hamiltonian, &mut particles, &mut rng);
         if accepted {
             acceptance_ratio.add(1.0);
         } else {
