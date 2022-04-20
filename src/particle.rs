@@ -95,6 +95,7 @@ impl Particle {
 }
 
 /// Generate particle vector with charged and neutral particles
+/// @todo Proper error handling / avoid panic
 pub fn generate_particles(radius: f64, num_total: usize, num_plus: usize, num_minus: usize) -> Vec<Particle> {
     let mut particles: Vec<Particle> = vec![Particle::new(radius, 0.0); num_total];
 

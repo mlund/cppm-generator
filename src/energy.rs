@@ -19,7 +19,6 @@
 // SOFTWARE.
 
 use crate::particle::Particle;
-use std::vec::Vec;
 
 /// Trait for pair energy between two particles
 pub trait PairPotential {
@@ -68,7 +67,7 @@ impl<T: PairPotential> Nonbonded<T> {
 
     /// Sum all pair interactions in vector of particles (kT)
     #[allow(dead_code)]
-    fn system_energy(&self, particles: &Vec<Particle>) -> f64 {
+    fn system_energy(&self, particles: &[Particle]) -> f64 {
         let mut energy = 0.0;
         for (i, particle_1) in particles.iter().enumerate() {
             for (j, particle_2) in particles.iter().enumerate() {
@@ -105,8 +104,8 @@ impl<T: PairPotential> Nonbonded<T> {
     }
 }
 
-/// @todo should return error if unknown
 impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
+    /// @todo should return error if unknown
     fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64 {
         if indices.len() == 1 {
             return self.particle_energy(particles, indices[0]);

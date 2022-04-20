@@ -49,11 +49,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     propagator.push(DisplaceParticle::default());
     propagator.push(SwapCharges::default());
 
-    // main Monte Carlo loop
+    // customise progress bar
     let bar = ProgressBar::new(args.steps as u64);
     bar.set_style(ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({eta})")
         .progress_chars("#>-"));
+
+    // main Monte Carlo loop
     for _ in 0..args.steps {
         bar.inc(1);
         propagator.do_move(&hamiltonian, &mut particles, &mut rng);
