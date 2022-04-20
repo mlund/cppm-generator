@@ -18,16 +18,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+use std::f64::consts::PI;
 use crate::particle::Particle;
 use nalgebra::Vector3;
 
+/// Total charge
+fn net_charge(particles : &[Particle]) -> f64 {
+    particles.iter().map(|i| i.charge).sum::<f64>()
+}
+
+/// Total absolute charge
+fn absolute_charge(particles : &[Particle]) -> f64 {
+    particles.iter().map(|i| f64::abs(i.charge)).sum::<f64>()
+}
+
 /// Calculates the geometric center
-pub fn geometric_center(particles: &[Particle]) -> Vector3<f64> {
+fn geometric_center(particles: &[Particle]) -> Vector3<f64> {
     particles.iter().map(|i| i.position).sum::<Vector3<f64>>() / particles.len() as f64
 }
 
 /// Calculates the center of charge
-pub fn charge_center(particles: &[Particle]) -> Vector3<f64> {
+fn charge_center(particles: &[Particle]) -> Vector3<f64> {
     let absolute_charge = particles.iter().map(|i| f64::abs(i.charge)).sum::<f64>();
     particles
         .iter()
@@ -37,7 +48,7 @@ pub fn charge_center(particles: &[Particle]) -> Vector3<f64> {
 }
 
 /// Dipole moment with origin at (0,0,0)
-pub fn dipole_moment(particles: &[Particle]) -> Vector3<f64> {
+fn dipole_moment(particles: &[Particle]) -> Vector3<f64> {
     particles.iter().map(|i| i.charge * i.position).sum()
 }
 
@@ -76,4 +87,21 @@ impl Moments {
         let mu = self.dipole_moment.transpose() / self.number_of_samples as f64;
         println!("dipole moment 𝛍               = |⟨∑qᵢ𝐫ᵢ⟩| = {:.1} eÅ", mu.norm());
     }
+}
+
+/// Print cppm particles such as surface charge density, net charge etc.
+pub fn print_global_properties(particles : &[Particle]) {
+    let radius = particles.first().expect("no particles").radius;
+    let surface_area = 4.0f64 * PI * radius * radius;
+    let mu = dipole_moment(particles).norm();
+    println!("CPPM properties:");
+    println!("  number of particles       = {}", particles.len());
+    println!("  abs. net charge           = {}", absolute_charge(particles));
+    println!("  radius                    = {} Å", particles.first().unwrap().radius);
+    println!("  surface area              = {:.2} Å²", surface_area);
+    println!("  monopole moment           = {:.2}e", net_charge(particles));
+    println!("  dipole moment |𝛍|         = {:.2} eÅ = {:.2} D", mu, mu / 0.2081943);
+    println!("  particle density          = {:.2} Å²/particle", surface_area / (particles.len() as f64));
+    println!("  surf. charge density      = {:.2} Å²/e", surface_area / net_charge(particles));
+    println!("  abs. surf. charge density = {:.2} Å²/e", surface_area / absolute_charge(particles));
 }

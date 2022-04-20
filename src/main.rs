@@ -33,6 +33,7 @@ use std::error::Error;
 use analysis::Moments;
 use montecarlo::{DisplaceParticle, SwapCharges, BareMove};
 use particle::generate_particles;
+use crate::analysis::print_global_properties;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = input::Args::parse();
@@ -64,6 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     bar.finish();
     propagator.print();
     moments.print();
+    print_global_properties(&particles);
 
     output::save_coordinates(&args.file, &particles)?;
     Ok(())
