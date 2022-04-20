@@ -11,13 +11,13 @@ The figure below shows examples of interacting CPPMs taken from https://doi.org/
 
 <img src="https://aip.scitation.org/action/showOpenGraphArticleImage?doi=10.1063/1.4928077&id=images/medium/1.4928077.figures.f14.gif" height="100" />
 
-This tool generates CPPMs by placing neutral, positive, and negative particles
+`cppm-generator` generates CPPMs by placing neutral, positive, and negative particles
 on the surface of a sphere, and minimise the (free) energy using
 Metropolis-Hastings Monte Carlo sampling.
 
 ## Command line usage:
 
-The default parameters produces an isotropic, charged particle simular to `P00`
+The default parameters produces an isotropic, charged particle similar to `P00`
 from [this](https://doi.org/10.1063/1.4928077) publication.
 
 ~~~
