@@ -1,11 +1,11 @@
 [![Rust](https://github.com/mlund/cppm-generator/actions/workflows/rust.yml/badge.svg)](https://github.com/mlund/cppm-generator/actions/workflows/rust.yml)
 
-# `cppm-generator`
+# CPPM Generator
 
 ## Overview
 
-This is a small command-line tool to generate spherical
-_Charged Patchy Particle Models_ (CPPM) which mimics bio-colloidal
+This is a small command-line tool, `cppm-generator`, to generate spherical
+_Charged Patchy Particle Models_ (CPPM) which mimic bio-colloidal
 particles, _e.g._ globular proteins.
 The figure below shows examples of interacting CPPMs taken from https://doi.org/10.1063/1.4928077:
 
@@ -17,7 +17,8 @@ Metropolis-Hastings Monte Carlo sampling.
 
 ## Command line usage:
 
-The default parameters produces an isotropic, charged particle simular to `P00` from [this](https://doi.org/10.1063/1.4928077) publication.
+The default parameters produces an isotropic, charged particle simular to `P00`
+from [this](https://doi.org/10.1063/1.4928077) publication.
 
 ~~~
 ./cppm-generator --help
