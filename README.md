@@ -4,8 +4,8 @@
 
 ## Overview
 
-This is a small command-line tool, `cppm-generator`, to generate spherical
-_Charged Patchy Particle Models_ (CPPM) which mimic bio-colloidal
+This is a single command-line tool, `cppm-generator`, that can generate spherical
+Charged Patchy Particle Models (CPPM) which mimic bio-colloidal
 particles, _e.g._ globular proteins.
 The figure below shows examples of interacting CPPMs taken from https://doi.org/10.1063/1.4928077:
 
@@ -17,23 +17,23 @@ Metropolis-Hastings Monte Carlo sampling.
 
 ## Command line usage:
 
-The default parameters produces an isotropic, charged particle similar to `P00`
+The default parameters produce an isotropic, charged particle similar to `P00`
 from [this](https://doi.org/10.1063/1.4928077) publication.
 
 ~~~
-./cppm-generator --help
+$ cppm-generator --help
 
 USAGE:
     cppm-generator [OPTIONS] --file <FILE>
 
 OPTIONS:
-    -b, --bjerrum-length <BJERRUM_LENGTH>    Bjerrum length (Å) [default: 7]
+    -b, --bjerrum-length <BJERRUM_LENGTH>    Bjerrum length (Å) [default: 7.0]
     -h, --help                               Print help information
     -m, --minus <NUM_MINUS>                  Number of negative (-1e) particles [default: 37]
     -N <NUM_TOTAL>                           Total number of particles [default: 643]
     -o, --file <FILE>                        Output structure (.xyz or .pqr)
     -p, --plus <NUM_PLUS>                    Number of positive (+1e) particles [default: 29]
-    -r, --radius <RADIUS>                    Sphere radius (Å) [default: 20]
+    -r, --radius <RADIUS>                    Sphere radius (Å) [default: 20.0]
     -s, --steps <STEPS>                      Number of Monte Carlo iterations [default: 10000]
     -V, --version                            Print version information
 ~~~
