@@ -26,6 +26,7 @@ Details and status:
 - [ ] Use [uon](https://crates.io/crates/uom) for dimensional analysis
 - [x] IO error handling
 - [ ] Unittests
+- [ ] Logging support
 
 ## Building and running
 
