@@ -10,8 +10,8 @@ mod analysis;
 use clap::Parser;
 use std::error::Error;
 use analysis::Moments;
-use crate::montecarlo::{DisplaceParticle, SwapCharges, BareMove};
-use crate::particle::generate_particles;
+use montecarlo::{DisplaceParticle, SwapCharges, BareMove};
+use particle::generate_particles;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = input::Args::parse();

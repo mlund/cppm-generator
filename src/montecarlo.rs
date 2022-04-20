@@ -21,7 +21,7 @@ fn accept_move(energy_change: f64) -> bool {
 
 /// Trait for Monte Carlo moves
 pub trait BareMove {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool;
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool;
 }
 
 /// Properties applicable for all moves
@@ -31,6 +31,7 @@ trait MoveProperties {
 
 /// Trait with both a move function and acceptance statistics
 trait MonteCarloMove: BareMove + MoveProperties {}
+
 impl<T: BareMove + MoveProperties> MonteCarloMove for T {}
 
 /// Fully functional MC move with a move function
@@ -50,7 +51,7 @@ impl<T: BareMove> WrappedMonteCarloMove<T> {
 }
 
 impl<T: BareMove> BareMove for WrappedMonteCarloMove<T> {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let accepted = self.monte_carlo_move.do_move(hamiltonian, particles, rng);
         self.acceptance_ratio.add(accepted as usize as f64);
         accepted
@@ -84,7 +85,7 @@ impl Propagator {
 }
 
 impl BareMove for Propagator {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let random_move = self.moves.choose_mut(rng).unwrap();
         let accepted = random_move.do_move(hamiltonian, particles, rng);
         accepted
@@ -97,7 +98,7 @@ impl BareMove for Propagator {
 pub struct DisplaceParticle;
 
 impl BareMove for DisplaceParticle {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let index = rng.gen_range(0..particles.len());
         let particle_backup = particles[index].clone();
         let old_energy = hamiltonian.energy(&particles, &vec!(index));
@@ -120,7 +121,7 @@ impl SwapCharges {
     /// Swap charges of two particles given by their indices
     /// @todo is there a more elegant way to do this using `swap`?
     /// Mutable charges: `let mut charges = particles.iter_mut().map(|i| &mut i.charge);`
-    fn swap_charges(&self, particles: &mut Vec<Particle>, first: usize, second: usize) {
+    fn swap_charges(&self, particles: &mut [Particle], first: usize, second: usize) {
         let mut charge = particles[second].charge;
         std::mem::swap(&mut particles[first].charge, &mut charge);
         std::mem::swap(&mut particles[second].charge, &mut charge);
@@ -128,7 +129,7 @@ impl SwapCharges {
 }
 
 impl BareMove for SwapCharges {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         // pick two random indices
         let (first, second) = (0..particles.len()).choose_multiple(rng, 2).iter().copied().collect_tuple().unwrap();
         assert!(first != second);

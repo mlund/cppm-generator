@@ -2,12 +2,12 @@ use crate::particle::Particle;
 use nalgebra::Vector3;
 
 /// Calculates the geometric center
-pub fn geometric_center(particles: &Vec<Particle>) -> Vector3<f64> {
+pub fn geometric_center(particles: &[Particle]) -> Vector3<f64> {
     particles.iter().map(|i| i.position).sum::<Vector3<f64>>() / particles.len() as f64
 }
 
 /// Calculates the center of charge
-pub fn charge_center(particles: &Vec<Particle>) -> Vector3<f64> {
+pub fn charge_center(particles: &[Particle]) -> Vector3<f64> {
     let absolute_charge = particles.iter().map(|i| f64::abs(i.charge)).sum::<f64>();
     particles
         .iter()
@@ -17,11 +17,12 @@ pub fn charge_center(particles: &Vec<Particle>) -> Vector3<f64> {
 }
 
 /// Dipole moment with origin at (0,0,0)
-pub fn dipole_moment(particles: &Vec<Particle>) -> Vector3<f64> {
+pub fn dipole_moment(particles: &[Particle]) -> Vector3<f64> {
     particles.iter().map(|i| i.charge * i.position).sum()
 }
 
 /// Analyze mean geometric center; charge center; and dipole moment
+#[derive(Default)]
 pub struct Moments {
     number_of_samples: u32,
     geometric_center: nalgebra::Vector3<f64>,
@@ -38,7 +39,7 @@ impl Moments {
             dipole_moment: Vector3::new(0.0, 0.0, 0.0),
         }
     }
-    pub fn sample(&mut self, particles: &Vec<Particle>) {
+    pub fn sample(&mut self, particles: &[Particle]) {
         self.geometric_center += geometric_center(particles);
         self.charge_center += charge_center(particles);
         self.dipole_moment += dipole_moment(particles);
