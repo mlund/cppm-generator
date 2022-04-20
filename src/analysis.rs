@@ -1,10 +1,12 @@
 use crate::particle::Particle;
 use nalgebra::Vector3;
 
+/// Calculates the geometric center
 pub fn geometric_center(particles: &Vec<Particle>) -> Vector3<f64> {
     particles.iter().map(|i| i.position).sum::<Vector3<f64>>() / particles.len() as f64
 }
 
+/// Calculates the center of charge
 pub fn charge_center(particles: &Vec<Particle>) -> Vector3<f64> {
     let absolute_charge = particles.iter().map(|i| f64::abs(i.charge)).sum::<f64>();
     particles
@@ -14,6 +16,7 @@ pub fn charge_center(particles: &Vec<Particle>) -> Vector3<f64> {
         / absolute_charge
 }
 
+/// Dipole moment with origin at (0,0,0)
 pub fn dipole_moment(particles: &Vec<Particle>) -> Vector3<f64> {
     particles.iter().map(|i| i.charge * i.position).sum()
 }

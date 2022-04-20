@@ -13,8 +13,9 @@ fn spherical_to_cartesian<T: Float>(phi: T, theta: T, radius: T) -> Vector3<T> {
     )
 }
 
+/// Particle data incl. position, charge etc.
 #[allow(dead_code)]
-#[derive(Clone, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct Particle {
     pub charge: f64,
     /// 0 ≤ φ < 2π (ISO standard)
@@ -61,7 +62,8 @@ impl Particle {
         self.set_angles(phi, theta);
     }
 
-    pub fn displace_angle(&mut self, dp : f64) {
+    /// Randomly displace theta and phi on a disc
+    pub fn displace_angle(&mut self, dp: f64) {
         // see https://mathworld.wolfram.com/SpherePointPicking.html
         // https://doi.org/10.1016/j.amc.2019.124670
         let random_angle = 2.0 * PI * random::<f64>();
@@ -73,9 +75,8 @@ impl Particle {
 }
 
 /// Generate particle vector with charged and neutral particles
-pub fn generate_particles(radius : f64, num_total: usize, num_plus: usize, num_minus: usize) -> Vec<Particle> {
-    let mut particles: Vec<Particle> =
-        vec![Particle::new(radius, 0.0); num_total];
+pub fn generate_particles(radius: f64, num_total: usize, num_plus: usize, num_minus: usize) -> Vec<Particle> {
+    let mut particles: Vec<Particle> = vec![Particle::new(radius, 0.0); num_total];
 
     if num_plus + num_minus > num_total {
         panic!("number of charged ions exceeds total number of particles")

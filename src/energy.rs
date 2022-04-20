@@ -33,6 +33,7 @@ impl PairPotential for Coulomb {
     }
 }
 
+/// Nonbonded and pair-wise additive interactions
 #[allow(dead_code)]
 pub struct Nonbonded<T: PairPotential> {
     pair_potential: T,
@@ -44,6 +45,7 @@ impl<T: PairPotential> Nonbonded<T> {
             pair_potential
         }
     }
+
     /// Sum all pair interactions in vector of particles (kT)
     #[allow(dead_code)]
     fn system_energy(&self, particles: &Vec<Particle>) -> f64 {
@@ -57,6 +59,7 @@ impl<T: PairPotential> Nonbonded<T> {
         }
         energy
     }
+
     /// Sum interaction energy of a single particle with all the rest (kT)
     #[allow(dead_code)]
     fn particle_energy(&self, particles: &Vec<Particle>, index: usize) -> f64 {
@@ -69,6 +72,7 @@ impl<T: PairPotential> Nonbonded<T> {
         energy
     }
 
+    /// Energy of swapping two particles
     fn swap_move_energy(&self, particles: &Vec<Particle>, first: usize, second: usize) -> f64 {
         let mut energy: f64 = self.pair_potential.energy(&particles[first], &particles[second]);
         for (i, particle) in particles.iter().enumerate() {
@@ -81,7 +85,7 @@ impl<T: PairPotential> Nonbonded<T> {
     }
 }
 
-/// @todo should return error
+/// @todo should return error if unknown
 impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
     fn energy(&self, particles: &Vec<Particle>, indices: &Vec<usize>) -> f64 {
         if indices.len() == 1 {
@@ -89,6 +93,6 @@ impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
         } else if indices.len() == 2 {
             return self.swap_move_energy(particles, indices[0], indices[1]);
         }
-        0.0
+        panic!("unknown energy request encountered");
     }
 }

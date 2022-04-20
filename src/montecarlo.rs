@@ -1,4 +1,4 @@
-use crate::energy::{EnergyTerm, PairPotential};
+use crate::energy::{EnergyTerm};
 use crate::particle::Particle;
 use rand::{random};
 use rand::rngs::ThreadRng;
@@ -6,10 +6,7 @@ use rand::Rng;
 use rand::prelude::SliceRandom;
 use rand::prelude::IteratorRandom;
 use itertools::Itertools;
-
-pub trait MonteCarloMove {
-    fn do_move(&self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool;
-}
+use average::Estimate;
 
 /// Metropolis-Hastings criterion for accepting / rejecting move
 ///
@@ -17,44 +14,90 @@ pub trait MonteCarloMove {
 ///
 /// * `energy_change` - New energy minus old energy in units of kT
 ///
-pub fn accept_move(energy_change: f64) -> bool {
+fn accept_move(energy_change: f64) -> bool {
     let acceptance_probability = f64::min(1.0, f64::exp(-energy_change));
     random::<f64>() < acceptance_probability
 }
 
+/// Trait for Monte Carlo moves
+pub trait BareMove {
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool;
+}
+
+/// Properties applicable for all moves
+trait MoveProperties {
+    fn mean_acceptance(&self) -> f64;
+}
+
+/// Trait with both a move function and acceptance statistics
+trait MonteCarloMove: BareMove + MoveProperties {}
+impl<T: BareMove + MoveProperties> MonteCarloMove for T {}
+
+/// Fully functional MC move with a move function
+/// and tracking of acceptance.
+struct WrappedMonteCarloMove<T: BareMove> {
+    acceptance_ratio: average::Mean,
+    monte_carlo_move: T,
+}
+
+impl<T: BareMove> WrappedMonteCarloMove<T> {
+    pub fn new(monte_carlo_move: T) -> Self {
+        WrappedMonteCarloMove {
+            acceptance_ratio: average::Mean::new(),
+            monte_carlo_move: monte_carlo_move,
+        }
+    }
+}
+
+impl<T: BareMove> BareMove for WrappedMonteCarloMove<T> {
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
+        let accepted = self.monte_carlo_move.do_move(hamiltonian, particles, rng);
+        self.acceptance_ratio.add(accepted as usize as f64);
+        accepted
+    }
+}
+
+impl<T: BareMove> MoveProperties for WrappedMonteCarloMove<T> {
+    fn mean_acceptance(&self) -> f64 {
+        self.acceptance_ratio.mean()
+    }
+}
+
 /// Aggregator for multiple Monte Carlo moves picked by random
-#[allow(dead_code)]
+#[derive(Default)]
 pub struct Propagator {
-    pub moves: Vec<Box<dyn MonteCarloMove>>,
+    moves: Vec<Box<dyn MonteCarloMove>>,
 }
 
 impl Propagator {
-    pub fn new() -> Self {
-        let empty_moves = Vec::<Box<dyn MonteCarloMove>>::new();
-        Propagator { moves: empty_moves }
+    // see also here: https://stackoverflow.com/questions/71900568/returning-mutable-reference-of-trait-in-vector
+    pub fn push<T: 'static + BareMove>(&mut self, mc_move: T) {
+        let wrapped_move = WrappedMonteCarloMove::new(mc_move);
+        self.moves.push(Box::new(wrapped_move));
     }
 
-    pub fn push<T: 'static + MonteCarloMove>(&mut self, mc_move: T) {
-        self.moves.push(Box::new(mc_move));
-    }
-
-    pub fn propagate(&self, hamiltonian: &dyn EnergyTerm, mut particles: &mut Vec<Particle>, mut rng: &mut ThreadRng) -> bool {
-        let random_move = self.moves.choose(&mut rng).unwrap();
-        let accept = random_move.do_move(hamiltonian, particles, &mut rng);
-        accept
+    pub fn print(&self) {
+        for (i, _move) in self.moves.iter().enumerate() {
+            println!("move {} acceptance ratio = {:.2}", i, _move.mean_acceptance());
+        }
     }
 }
 
-pub struct DisplaceParticle {}
-
-impl DisplaceParticle {
-    pub fn default() -> Self {
-        Self {}
+impl BareMove for Propagator {
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
+        let random_move = self.moves.choose_mut(rng).unwrap();
+        let accepted = random_move.do_move(hamiltonian, particles, rng);
+        accepted
     }
 }
 
-impl MonteCarloMove for DisplaceParticle {
-    fn do_move(&self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
+/// Randomly displace spherical coordinates of a single particle
+/// The move is done on a unit disc around the old position
+#[derive(Default)]
+pub struct DisplaceParticle;
+
+impl BareMove for DisplaceParticle {
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
         let index = rng.gen_range(0..particles.len());
         let particle_backup = particles[index].clone();
         let old_energy = hamiltonian.energy(&particles, &vec!(index));
@@ -69,34 +112,36 @@ impl MonteCarloMove for DisplaceParticle {
     }
 }
 
-pub struct SwapCharges {}
+/// Monte Carlo move to swap charges between two randomly selectec particles
+#[derive(Default)]
+pub struct SwapCharges;
 
 impl SwapCharges {
-    pub fn default() -> Self {
-        Self {}
-    }
     /// Swap charges of two particles given by their indices
+    /// @todo is there a more elegant way to do this using `swap`?
+    /// Mutable charges: `let mut charges = particles.iter_mut().map(|i| &mut i.charge);`
     fn swap_charges(&self, particles: &mut Vec<Particle>, first: usize, second: usize) {
-        let mut charges = particles.iter_mut().map(|i| &mut i.charge);
-        std::mem::swap(&mut charges.nth(first), &mut charges.nth(second));
+        let mut charge = particles[second].charge;
+        std::mem::swap(&mut particles[first].charge, &mut charge);
+        std::mem::swap(&mut particles[second].charge, &mut charge);
     }
 }
 
-impl MonteCarloMove for SwapCharges {
-    fn do_move(&self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
+impl BareMove for SwapCharges {
+    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut Vec<Particle>, rng: &mut ThreadRng) -> bool {
         // pick two random indices
         let (first, second) = (0..particles.len()).choose_multiple(rng, 2).iter().copied().collect_tuple().unwrap();
-        if particles[first].charge == 0.0 && particles[first].charge == 0.0 {
-            return false;
-        }
-        let old_energy = hamiltonian.energy(&particles, &vec!(first, second));
-        self.swap_charges(particles, first, second);
-        let new_energy = hamiltonian.energy(&particles, &vec!(first, second));
-        let energy_change = new_energy - old_energy;
+        assert!(first != second);
+        if particles[first].charge != particles[second].charge {
+            let old_energy = hamiltonian.energy(&particles, &vec!(first, second));
+            self.swap_charges(particles, first, second);
+            let new_energy = hamiltonian.energy(&particles, &vec!(first, second));
+            let energy_change = new_energy - old_energy;
 
-        if !accept_move(energy_change) { // reject and...
-            self.swap_charges(particles, first, second); // ...swap back charges
-            return false;
+            if !accept_move(energy_change) { // reject and...
+                self.swap_charges(particles, first, second); // ...swap back charges
+                return false;
+            }
         }
         true
     }
