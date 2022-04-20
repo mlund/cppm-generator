@@ -140,8 +140,9 @@ pub struct SwapCharges;
 
 impl SwapCharges {
     /// Swap charges of two particles given by their indices
-    /// @todo is there a more elegant way to do this using `swap`?
-    /// Mutable charges: `let mut charges = particles.iter_mut().map(|i| &mut i.charge);`
+    ///
+    /// - @todo is there a more elegant way to do this using `swap`?
+    /// - Mutable charges: `let mut charges = particles.iter_mut().map(|i| &mut i.charge);`
     fn swap_charges(&self, particles: &mut [Particle], first: usize, second: usize) {
         let mut charge = particles[second].charge;
         std::mem::swap(&mut particles[first].charge, &mut charge);
@@ -151,7 +152,6 @@ impl SwapCharges {
 
 impl BareMove for SwapCharges {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
-        // pick two random indices
         let (first, second) = (0..particles.len()).choose_multiple(rng, 2).iter().copied().collect_tuple().unwrap();
         assert!(first != second);
         if particles[first].charge != particles[second].charge {

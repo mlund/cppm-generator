@@ -57,8 +57,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .progress_chars("#>-"));
 
     // main Monte Carlo loop
-    for _ in 0..args.steps {
-        bar.inc(1);
+    for i in 0..args.steps {
+        if i % 100 == 0 { bar.inc(100) };
         propagator.do_move(&hamiltonian, &mut particles, &mut rng);
         moments.sample(&particles);
     }

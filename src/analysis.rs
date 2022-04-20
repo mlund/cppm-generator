@@ -92,7 +92,7 @@ impl Moments {
 /// Print cppm particles such as surface charge density, net charge etc.
 pub fn print_global_properties(particles : &[Particle]) {
     let radius = particles.first().expect("no particles").radius;
-    let surface_area = 4.0f64 * PI * radius * radius;
+    let surface_area = 4.0 * PI * radius * radius;
     let mu = dipole_moment(particles).norm();
     println!("CPPM properties:");
     println!("  number of particles       = {}", particles.len());
