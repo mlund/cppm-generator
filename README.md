@@ -17,7 +17,8 @@ Metropolis-Hastings Monte Carlo sampling.
 
 ## Command line usage:
 
-The default parameters produce an isotropic, charged particle similar to `P00` from Table 1 in [this](https://doi.org/10.1063/1.4928077) publication.
+The default parameters produce an isotropic, charged particle similar to `P00` from Table 1 in
+[this](https://doi.org/10.48550/arXiv.1701.02457) publication.
 
 ~~~
 $ cppm-generator --help
