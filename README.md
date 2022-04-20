@@ -1,3 +1,5 @@
+[![Rust](https://github.com/mlund/cppm-generator/actions/workflows/rust.yml/badge.svg)](https://github.com/mlund/cppm-generator/actions/workflows/rust.yml)
+
 # `cppm-generator`
 
 ## Overview
