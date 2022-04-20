@@ -8,7 +8,7 @@ pub trait PairPotential {
 
 /// Trait for terms in the Hamiltonian (nonbonded etc.)
 pub trait EnergyTerm {
-    fn energy(&self, particles: &Vec<Particle>, indices: &Vec<usize>) -> f64;
+    fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64;
 }
 
 /// Coulomb interaction + additional soft-core repulsion
@@ -62,7 +62,7 @@ impl<T: PairPotential> Nonbonded<T> {
 
     /// Sum interaction energy of a single particle with all the rest (kT)
     #[allow(dead_code)]
-    fn particle_energy(&self, particles: &Vec<Particle>, index: usize) -> f64 {
+    fn particle_energy(&self, particles: &[Particle], index: usize) -> f64 {
         let mut energy = 0.0;
         for (i, particle) in particles.iter().enumerate() {
             if i != index {
@@ -73,7 +73,7 @@ impl<T: PairPotential> Nonbonded<T> {
     }
 
     /// Energy of swapping two particles
-    fn swap_move_energy(&self, particles: &Vec<Particle>, first: usize, second: usize) -> f64 {
+    fn swap_move_energy(&self, particles: &[Particle], first: usize, second: usize) -> f64 {
         let mut energy: f64 = self.pair_potential.energy(&particles[first], &particles[second]);
         for (i, particle) in particles.iter().enumerate() {
             if i != first && i != second {
@@ -87,7 +87,7 @@ impl<T: PairPotential> Nonbonded<T> {
 
 /// @todo should return error if unknown
 impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
-    fn energy(&self, particles: &Vec<Particle>, indices: &Vec<usize>) -> f64 {
+    fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64 {
         if indices.len() == 1 {
             return self.particle_energy(particles, indices[0]);
         } else if indices.len() == 2 {
