@@ -18,15 +18,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use crate::energy::{EnergyTerm};
-use crate::particle::Particle;
-use rand::{random};
-use rand::rngs::ThreadRng;
-use rand::Rng;
-use rand::prelude::SliceRandom;
-use rand::prelude::IteratorRandom;
-use itertools::Itertools;
 use average::Estimate;
+use itertools::Itertools;
+use rand::random;
+use rand::prelude::IteratorRandom;
+use rand::prelude::SliceRandom;
+use rand::Rng;
+use rand::rngs::ThreadRng;
+
+use crate::energy::EnergyTerm;
+use crate::particle::Particle;
 
 /// Metropolis-Hastings criterion for accepting / rejecting move
 ///
@@ -65,7 +66,7 @@ impl<T: BareMove> WrappedMonteCarloMove<T> {
     pub fn new(monte_carlo_move: T) -> Self {
         WrappedMonteCarloMove {
             acceptance_ratio: average::Mean::new(),
-            monte_carlo_move: monte_carlo_move,
+            monte_carlo_move,
         }
     }
 }
@@ -121,9 +122,9 @@ impl BareMove for DisplaceParticle {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let index = rng.gen_range(0..particles.len());
         let particle_backup = particles[index].clone();
-        let old_energy = hamiltonian.energy(&particles, &vec!(index));
+        let old_energy = hamiltonian.energy(&particles, &[index]);
         particles[index].displace_angle(0.01);
-        let new_energy = hamiltonian.energy(&particles, &vec!(index));
+        let new_energy = hamiltonian.energy(&particles, &[index]);
         let energy_change = new_energy - old_energy;
         if !accept_move(energy_change) {
             particles[index].clone_from(&particle_backup); // restore
@@ -133,7 +134,7 @@ impl BareMove for DisplaceParticle {
     }
 }
 
-/// Monte Carlo move to swap charges between two randomly selectec particles
+/// Monte Carlo move to swap charges between two randomly selected particles
 #[derive(Default)]
 pub struct SwapCharges;
 
@@ -154,9 +155,9 @@ impl BareMove for SwapCharges {
         let (first, second) = (0..particles.len()).choose_multiple(rng, 2).iter().copied().collect_tuple().unwrap();
         assert!(first != second);
         if particles[first].charge != particles[second].charge {
-            let old_energy = hamiltonian.energy(&particles, &vec!(first, second));
+            let old_energy = hamiltonian.energy(&particles, &[first, second]);
             self.swap_charges(particles, first, second);
-            let new_energy = hamiltonian.energy(&particles, &vec!(first, second));
+            let new_energy = hamiltonian.energy(&particles, &[first, second]);
             let energy_change = new_energy - old_energy;
 
             if !accept_move(energy_change) { // reject and...
