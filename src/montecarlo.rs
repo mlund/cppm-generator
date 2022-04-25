@@ -168,8 +168,14 @@ impl SwapCharges {
 
 impl BareMove for SwapCharges {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
-        let (first, second) = (0..particles.len()).choose_multiple(rng, 2).iter().copied().collect_tuple().unwrap();
+        let (first, second) = (0..particles.len())
+            .choose_multiple(rng, 2)
+            .iter()
+            .copied()
+            .collect_tuple()
+            .unwrap();
         assert!(first != second);
+
         if particles[first].charge != particles[second].charge {
             let old_energy = hamiltonian.energy(&particles, &[first, second]);
             self.swap_charges(particles, first, second);

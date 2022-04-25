@@ -68,7 +68,11 @@ impl<T: PairPotential> Nonbonded<T> {
     #[allow(dead_code)]
     pub fn system_energy(&self, particles: &[Particle]) -> f64 {
         let pair_energy = |v: Vec<&Particle>| self.pair_potential.energy(&v[0], &v[1]);
-        particles.iter().combinations(2).map(pair_energy).sum::<f64>()
+        particles
+            .iter()
+            .combinations(2)
+            .map(pair_energy)
+            .sum::<f64>()
     }
 
     /// Sum interaction energy of a single particle with all the rest (kT)
