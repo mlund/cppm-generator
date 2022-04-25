@@ -23,11 +23,11 @@ use crate::num_traits::Float;
 
 use average::Estimate;
 use itertools::Itertools;
-use rand::random;
 use rand::prelude::IteratorRandom;
 use rand::prelude::SliceRandom;
-use rand::Rng;
+use rand::random;
 use rand::rngs::ThreadRng;
+use rand::Rng;
 
 use crate::energy::EnergyTerm;
 use crate::particle::Particle;
@@ -58,11 +58,19 @@ mod tests {
 
 /// Trait for Monte Carlo moves
 pub trait MonteCarloMove {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool;
+    /// Perform a Metropolis-Hastings Monte Carlo move.
+    /// Returns true if the move was successful.
+    fn do_move(
+        &mut self,
+        hamiltonian: &dyn EnergyTerm,
+        particles: &mut [Particle],
+        rng: &mut ThreadRng,
+    ) -> bool;
 }
 
 /// Properties applicable for all moves
 trait MoveProperties {
+    /// Average fraction of accepted moves
     fn mean_acceptance(&self) -> f64;
 }
 
@@ -88,7 +96,12 @@ impl<T: MonteCarloMove> WrappedMonteCarloMove<T> {
 }
 
 impl<T: MonteCarloMove> MonteCarloMove for WrappedMonteCarloMove<T> {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
+    fn do_move(
+        &mut self,
+        hamiltonian: &dyn EnergyTerm,
+        particles: &mut [Particle],
+        rng: &mut ThreadRng,
+    ) -> bool {
         let accepted = self.monte_carlo_move.do_move(hamiltonian, particles, rng);
         self.acceptance_ratio.add(accepted as usize as f64);
         accepted
@@ -116,13 +129,22 @@ impl Propagator {
 
     pub fn print(&self) {
         for (i, _move) in self.moves.iter().enumerate() {
-            println!("move {} acceptance ratio = {:.2}", i, _move.mean_acceptance());
+            println!(
+                "move {} acceptance ratio = {:.2}",
+                i,
+                _move.mean_acceptance()
+            );
         }
     }
 }
 
 impl MonteCarloMove for Propagator {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
+    fn do_move(
+        &mut self,
+        hamiltonian: &dyn EnergyTerm,
+        particles: &mut [Particle],
+        rng: &mut ThreadRng,
+    ) -> bool {
         let random_move = self.moves.choose_mut(rng).unwrap();
         let accepted = random_move.do_move(hamiltonian, particles, rng);
         accepted
@@ -134,14 +156,20 @@ impl MonteCarloMove for Propagator {
 #[derive(Default, Builder)]
 pub struct DisplaceParticle {
     #[builder(default = "0.01")]
-    angular_displacement : f64,
+    angular_displacement: f64,
 }
 
 impl MonteCarloMove for DisplaceParticle {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
+    fn do_move(
+        &mut self,
+        hamiltonian: &dyn EnergyTerm,
+        particles: &mut [Particle],
+        rng: &mut ThreadRng,
+    ) -> bool {
         let index = rng.gen_range(0..particles.len());
         let particle_backup = particles[index].to_owned();
         let old_energy = hamiltonian.energy(&particles, &[index]);
+
         particles[index].displace_angle(self.angular_displacement);
         let new_energy = hamiltonian.energy(&particles, &[index]);
         let energy_change = new_energy - old_energy;
@@ -170,7 +198,12 @@ impl SwapCharges {
 }
 
 impl MonteCarloMove for SwapCharges {
-    fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
+    fn do_move(
+        &mut self,
+        hamiltonian: &dyn EnergyTerm,
+        particles: &mut [Particle],
+        rng: &mut ThreadRng,
+    ) -> bool {
         let (first, second) = (0..particles.len())
             .choose_multiple(rng, 2)
             .iter()
@@ -185,7 +218,8 @@ impl MonteCarloMove for SwapCharges {
             let new_energy = hamiltonian.energy(&particles, &[first, second]);
             let energy_change = new_energy - old_energy;
 
-            if !accept_move(energy_change) { // reject and...
+            if !accept_move(energy_change) {
+                // reject and...
                 self.swap_charges(particles, first, second); // ...swap back charges
                 return false;
             }

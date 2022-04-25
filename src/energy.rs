@@ -28,6 +28,7 @@ pub trait PairPotential {
 
 /// Trait for terms in the Hamiltonian (nonbonded etc.)
 pub trait EnergyTerm {
+    /// Energy of a subset of particles given by their indices
     fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64;
 }
 
@@ -52,16 +53,14 @@ impl PairPotential for Coulomb {
     }
 }
 
-/// Nonbonded and pair-wise additive interactions
+/// Nonbonded, pair-wise additive interactions
 pub struct Nonbonded<T: PairPotential> {
     pair_potential: T,
 }
 
 impl<T: PairPotential> Nonbonded<T> {
     pub fn new(pair_potential: T) -> Self {
-        Self {
-            pair_potential
-        }
+        Self { pair_potential }
     }
 
     /// Sum all pair interactions in vector of particles (kT)
@@ -88,19 +87,21 @@ impl<T: PairPotential> Nonbonded<T> {
 
     /// Energy of swapping two particles
     fn swap_move_energy(&self, particles: &[Particle], first: usize, second: usize) -> f64 {
-        let mut energy: f64 = self.pair_potential.energy(&particles[first], &particles[second]);
+        let mut energy: f64 = self
+            .pair_potential
+            .energy(&particles[first], &particles[second]);
         for (i, particle) in particles.iter().enumerate() {
-            if i != first && i != second {
-                energy += self.pair_potential.energy(&particle, &particles[first])
-                    + self.pair_potential.energy(&particle, &particles[second]);
+            if i == first || i == second {
+                continue;
             }
+            energy += self.pair_potential.energy(&particle, &particles[first])
+                + self.pair_potential.energy(&particle, &particles[second]);
         }
         energy
     }
 }
 
 impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
-    /// Energy of a subset of particles given by their indices
     fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64 {
         match indices.len() {
             1 => return self.particle_energy(particles, indices[0]),

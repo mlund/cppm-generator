@@ -84,21 +84,35 @@ impl Particle {
 }
 
 /// Generate particle vector with charged and neutral particles
-pub fn generate_particles(radius: f64, num_total: usize, num_plus: usize, num_minus: usize) -> Vec<Particle> {
+pub fn generate_particles(
+    radius: f64,
+    num_total: usize,
+    num_plus: usize,
+    num_minus: usize,
+) -> Vec<Particle> {
     assert!(num_total > 0);
-    let mut particles: Vec<Particle> = vec![ParticleBuilder::default()
-                                                .radius(radius)
-                                                .charge(0.0)
-                                                .build()
-                                                .unwrap()
-                                                ; num_total];
+    let mut particles: Vec<Particle> = vec![
+        ParticleBuilder::default()
+            .radius(radius)
+            .charge(0.0)
+            .build()
+            .unwrap();
+        num_total
+    ];
 
     if num_plus + num_minus > num_total {
         panic!("number of charged ions exceeds total number of particles")
     }
     // cations in the front; anions in the back; then random positions:
-    particles.iter_mut().take(num_plus).for_each(|i| i.charge = 1.0);
-    particles.iter_mut().rev().take(num_minus).for_each(|i| i.charge = -1.0);
+    particles
+        .iter_mut()
+        .take(num_plus)
+        .for_each(|i| i.charge = 1.0);
+    particles
+        .iter_mut()
+        .rev()
+        .take(num_minus)
+        .for_each(|i| i.charge = -1.0);
     particles.iter_mut().for_each(|i| i.random_angles());
     particles
 }
