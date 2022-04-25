@@ -14,3 +14,4 @@ average = "0.13.1"
 itertools = "0.10.3"
 approx = "0.5.1"
 indicatif = "0.16.2"
+

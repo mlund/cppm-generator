@@ -19,6 +19,7 @@
 // SOFTWARE.
 
 use crate::particle::Particle;
+use itertools::Itertools;
 
 /// Trait for pair energy between two particles
 pub trait PairPotential {
@@ -31,13 +32,11 @@ pub trait EnergyTerm {
 }
 
 /// Coulomb interaction + additional soft-core repulsion
-#[allow(dead_code)]
 pub struct Coulomb {
     /// Bjerrum length, e^2 / 4 x pi x epsilon_0 x epsilon_r * k_B * T
     pub bjerrum_length: f64,
 }
 
-#[allow(dead_code)]
 impl Coulomb {
     pub fn new(bjerrum_length: f64) -> Self {
         Coulomb { bjerrum_length }
@@ -45,6 +44,7 @@ impl Coulomb {
 }
 
 impl PairPotential for Coulomb {
+    /// Soft repulsive r^12 + Coulomb potential
     fn energy(&self, particle_1: &Particle, particle_2: &Particle) -> f64 {
         let distance = (particle_1.position - particle_2.position).norm();
         4.0 * f64::powi(4.0 / distance, 12)
@@ -53,7 +53,6 @@ impl PairPotential for Coulomb {
 }
 
 /// Nonbonded and pair-wise additive interactions
-#[allow(dead_code)]
 pub struct Nonbonded<T: PairPotential> {
     pair_potential: T,
 }
@@ -67,20 +66,12 @@ impl<T: PairPotential> Nonbonded<T> {
 
     /// Sum all pair interactions in vector of particles (kT)
     #[allow(dead_code)]
-    fn system_energy(&self, particles: &[Particle]) -> f64 {
-        let mut energy = 0.0;
-        for (i, particle_1) in particles.iter().enumerate() {
-            for (j, particle_2) in particles.iter().enumerate() {
-                if i > j {
-                    energy += self.pair_potential.energy(particle_1, particle_2);
-                }
-            }
-        }
-        energy
+    pub fn system_energy(&self, particles: &[Particle]) -> f64 {
+        let pair_energy = |v: Vec<&Particle>| self.pair_potential.energy(&v[0], &v[1]);
+        particles.iter().combinations(2).map(pair_energy).sum::<f64>()
     }
 
     /// Sum interaction energy of a single particle with all the rest (kT)
-    #[allow(dead_code)]
     fn particle_energy(&self, particles: &[Particle], index: usize) -> f64 {
         let mut energy = 0.0;
         for (i, particle) in particles.iter().enumerate() {
@@ -107,11 +98,10 @@ impl<T: PairPotential> Nonbonded<T> {
 impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
     /// @todo should return error if unknown
     fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64 {
-        if indices.len() == 1 {
-            return self.particle_energy(particles, indices[0]);
-        } else if indices.len() == 2 {
-            return self.swap_move_energy(particles, indices[0], indices[1]);
+        match indices.len() {
+            1 => return self.particle_energy(particles, indices[0]),
+            2 => return self.swap_move_energy(particles, indices[0], indices[1]),
+            _ => panic!("unknown energy request"),
         }
-        panic!("unknown energy request encountered");
     }
 }

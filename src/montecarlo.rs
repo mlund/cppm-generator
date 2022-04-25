@@ -18,6 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#[cfg(test)]
+use crate::num_traits::Float;
+
 use average::Estimate;
 use itertools::Itertools;
 use rand::random;
@@ -34,10 +37,23 @@ use crate::particle::Particle;
 /// # Arguments
 ///
 /// * `energy_change` - New energy minus old energy in units of kT
-///
 fn accept_move(energy_change: f64) -> bool {
     let acceptance_probability = f64::min(1.0, f64::exp(-energy_change));
     random::<f64>() < acceptance_probability
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_accept_move() {
+        let max_exponent = f64::ln(f64::max_value());
+        assert_eq!(accept_move(-1.0), true);
+        assert_eq!(accept_move(0.0), true);
+        assert_eq!(accept_move(max_exponent), false);
+        assert_eq!(accept_move(max_exponent * 1.1), false);
+    }
 }
 
 /// Trait for Monte Carlo moves
@@ -121,7 +137,7 @@ pub struct DisplaceParticle;
 impl BareMove for DisplaceParticle {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let index = rng.gen_range(0..particles.len());
-        let particle_backup = particles[index].clone();
+        let particle_backup = particles[index].to_owned();
         let old_energy = hamiltonian.energy(&particles, &[index]);
         particles[index].displace_angle(0.01);
         let new_energy = hamiltonian.energy(&particles, &[index]);
