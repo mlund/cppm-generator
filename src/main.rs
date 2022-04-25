@@ -34,7 +34,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use clap::Parser;
 use std::error::Error;
 use analysis::Moments;
-use montecarlo::{DisplaceParticle, SwapCharges, MonteCarloMove};
+use montecarlo::{DisplaceParticleBuilder, SwapCharges, MonteCarloMove};
 use particle::generate_particles;
 use crate::analysis::print_global_properties;
 
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut moments = Moments::new();
 
     let mut propagator = montecarlo::Propagator::default();
-    propagator.push(DisplaceParticle::default());
+    propagator.push(DisplaceParticleBuilder::default().angular_displacement(0.01).build().unwrap());
     propagator.push(SwapCharges::default());
 
     // customise progress bar

@@ -131,15 +131,18 @@ impl MonteCarloMove for Propagator {
 
 /// Randomly displace spherical coordinates of a single particle
 /// The move is done on a unit disc around the old position
-#[derive(Default)]
-pub struct DisplaceParticle;
+#[derive(Default, Builder)]
+pub struct DisplaceParticle {
+    #[builder(default = "0.01")]
+    angular_displacement : f64,
+}
 
 impl MonteCarloMove for DisplaceParticle {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let index = rng.gen_range(0..particles.len());
         let particle_backup = particles[index].to_owned();
         let old_energy = hamiltonian.energy(&particles, &[index]);
-        particles[index].displace_angle(0.01);
+        particles[index].displace_angle(self.angular_displacement);
         let new_energy = hamiltonian.energy(&particles, &[index]);
         let energy_change = new_energy - old_energy;
         if !accept_move(energy_change) {
