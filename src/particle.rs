@@ -34,37 +34,26 @@ fn spherical_to_cartesian<T: Float>(phi: T, theta: T, radius: T) -> Vector3<T> {
 }
 
 /// Particle data incl. position, charge etc.
-#[allow(dead_code)]
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Clone, Debug, Builder)]
 pub struct Particle {
     pub charge: f64,
     /// 0 ≤ φ < 2π (ISO standard)
+    #[builder(setter(skip))]
     pub phi: f64,
     /// 0 ≤ θ ≤ π (ISO standard)
+    #[builder(setter(skip))]
     pub theta: f64,
     /// spherical coordinate radius
     pub radius: f64,
     /// cartesian position (automatically updated)
+    #[builder(setter(skip))]
     pub position: nalgebra::Vector3<f64>,
 }
 
 // associated functions: https://doc.rust-lang.org/rust-by-example/fn/methods.html
-#[allow(dead_code)]
 impl Particle {
     fn update_cartesian(&mut self) {
         self.position = spherical_to_cartesian(self.phi, self.theta, self.radius);
-    }
-
-    pub fn new(radius: f64, charge: f64) -> Self {
-        let mut particle = Particle {
-            charge: charge,
-            phi: 0.0,
-            theta: 0.0,
-            radius: radius,
-            position: Vector3::new(0.0, 0.0, 0.0),
-        };
-        particle.random_angles();
-        particle
     }
 
     /// Set angles and update cartesian coordinate
@@ -95,10 +84,14 @@ impl Particle {
 }
 
 /// Generate particle vector with charged and neutral particles
-/// @todo Proper error handling / avoid panic
 pub fn generate_particles(radius: f64, num_total: usize, num_plus: usize, num_minus: usize) -> Vec<Particle> {
     assert!(num_total > 0);
-    let mut particles: Vec<Particle> = vec![Particle::new(radius, 0.0); num_total];
+    let mut particles: Vec<Particle> = vec![ParticleBuilder::default()
+                                                .radius(radius)
+                                                .charge(0.0)
+                                                .build()
+                                                .unwrap()
+                                                ; num_total];
 
     if num_plus + num_minus > num_total {
         panic!("number of charged ions exceeds total number of particles")

@@ -96,7 +96,7 @@ impl<T: PairPotential> Nonbonded<T> {
 }
 
 impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
-    /// @todo should return error if unknown
+    /// Energy of a subset of particles given by their indices
     fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64 {
         match indices.len() {
             1 => return self.particle_energy(particles, indices[0]),
