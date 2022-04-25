@@ -57,7 +57,7 @@ mod tests {
 }
 
 /// Trait for Monte Carlo moves
-pub trait BareMove {
+pub trait MonteCarloMove {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool;
 }
 
@@ -67,18 +67,18 @@ trait MoveProperties {
 }
 
 /// Trait with both a move function and acceptance statistics
-trait MonteCarloMove: BareMove + MoveProperties {}
+trait MonteCarloMoveExpanded: MonteCarloMove + MoveProperties {}
 
-impl<T: BareMove + MoveProperties> MonteCarloMove for T {}
+impl<T: MonteCarloMove + MoveProperties> MonteCarloMoveExpanded for T {}
 
 /// Fully functional MC move with a move function
 /// and tracking of acceptance.
-struct WrappedMonteCarloMove<T: BareMove> {
+struct WrappedMonteCarloMove<T: MonteCarloMove> {
     acceptance_ratio: average::Mean,
     monte_carlo_move: T,
 }
 
-impl<T: BareMove> WrappedMonteCarloMove<T> {
+impl<T: MonteCarloMove> WrappedMonteCarloMove<T> {
     pub fn new(monte_carlo_move: T) -> Self {
         WrappedMonteCarloMove {
             acceptance_ratio: average::Mean::new(),
@@ -87,7 +87,7 @@ impl<T: BareMove> WrappedMonteCarloMove<T> {
     }
 }
 
-impl<T: BareMove> BareMove for WrappedMonteCarloMove<T> {
+impl<T: MonteCarloMove> MonteCarloMove for WrappedMonteCarloMove<T> {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let accepted = self.monte_carlo_move.do_move(hamiltonian, particles, rng);
         self.acceptance_ratio.add(accepted as usize as f64);
@@ -95,7 +95,7 @@ impl<T: BareMove> BareMove for WrappedMonteCarloMove<T> {
     }
 }
 
-impl<T: BareMove> MoveProperties for WrappedMonteCarloMove<T> {
+impl<T: MonteCarloMove> MoveProperties for WrappedMonteCarloMove<T> {
     fn mean_acceptance(&self) -> f64 {
         self.acceptance_ratio.mean()
     }
@@ -104,12 +104,12 @@ impl<T: BareMove> MoveProperties for WrappedMonteCarloMove<T> {
 /// Aggregator for multiple Monte Carlo moves picked by random
 #[derive(Default)]
 pub struct Propagator {
-    moves: Vec<Box<dyn MonteCarloMove>>,
+    moves: Vec<Box<dyn MonteCarloMoveExpanded>>,
 }
 
 impl Propagator {
     // see also here: https://stackoverflow.com/questions/71900568/returning-mutable-reference-of-trait-in-vector
-    pub fn push<T: 'static + BareMove>(&mut self, mc_move: T) {
+    pub fn push<T: 'static + MonteCarloMove>(&mut self, mc_move: T) {
         let wrapped_move = WrappedMonteCarloMove::new(mc_move);
         self.moves.push(Box::new(wrapped_move));
     }
@@ -121,7 +121,7 @@ impl Propagator {
     }
 }
 
-impl BareMove for Propagator {
+impl MonteCarloMove for Propagator {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let random_move = self.moves.choose_mut(rng).unwrap();
         let accepted = random_move.do_move(hamiltonian, particles, rng);
@@ -134,7 +134,7 @@ impl BareMove for Propagator {
 #[derive(Default)]
 pub struct DisplaceParticle;
 
-impl BareMove for DisplaceParticle {
+impl MonteCarloMove for DisplaceParticle {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let index = rng.gen_range(0..particles.len());
         let particle_backup = particles[index].to_owned();
@@ -166,7 +166,7 @@ impl SwapCharges {
     }
 }
 
-impl BareMove for SwapCharges {
+impl MonteCarloMove for SwapCharges {
     fn do_move(&mut self, hamiltonian: &dyn EnergyTerm, particles: &mut [Particle], rng: &mut ThreadRng) -> bool {
         let (first, second) = (0..particles.len())
             .choose_multiple(rng, 2)

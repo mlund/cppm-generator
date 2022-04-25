@@ -34,7 +34,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use clap::Parser;
 use std::error::Error;
 use analysis::Moments;
-use montecarlo::{DisplaceParticle, SwapCharges, BareMove};
+use montecarlo::{DisplaceParticle, SwapCharges, MonteCarloMove};
 use particle::generate_particles;
 use crate::analysis::print_global_properties;
 
