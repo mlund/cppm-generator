@@ -32,10 +32,14 @@ use rand::Rng;
 use crate::energy::EnergyTerm;
 use crate::particle::Particle;
 
-/// Metropolis-Hastings criterion for accepting / rejecting move
+///
+/// Use the Metropolis-Hastings criterion to determine if a
+/// move should be accepted or rejected based in the energy difference.
 ///
 /// # Arguments
+///
 /// * `energy_change` - New energy minus old energy in units of kT
+///
 fn accept_move(energy_change: f64) -> bool {
     let acceptance_probability = f64::min(1.0, f64::exp(-energy_change));
     random::<f64>() < acceptance_probability
@@ -55,7 +59,9 @@ mod tests {
     }
 }
 
+///
 /// Trait for Monte Carlo moves
+///
 pub trait MonteCarloMove {
     /// Perform a Metropolis-Hastings Monte Carlo move.
     /// Returns true if the move was successful.
@@ -193,6 +199,19 @@ impl SwapCharges {
         std::mem::swap(&mut particles[first].charge, &mut charge);
         std::mem::swap(&mut particles[second].charge, &mut charge);
     }
+
+    /// Pick two, random and non-repeating particle indices
+    fn random_indices(number_of_particles: usize, rng: &mut ThreadRng) -> (usize, usize) {
+        assert!(number_of_particles >= 2);
+        let (first, second) = (0..number_of_particles)
+            .choose_multiple(rng, 2)
+            .iter()
+            .copied()
+            .collect_tuple()
+            .unwrap();
+        assert!(first != second);
+        (first, second)
+    }
 }
 
 impl MonteCarloMove for SwapCharges {
@@ -202,15 +221,7 @@ impl MonteCarloMove for SwapCharges {
         particles: &mut [Particle],
         rng: &mut ThreadRng,
     ) -> bool {
-        // generate two random particle indices
-        let (first, second) = (0..particles.len())
-            .choose_multiple(rng, 2)
-            .iter()
-            .copied()
-            .collect_tuple()
-            .unwrap();
-        assert!(first != second);
-
+        let (first, second) = Self::random_indices(particles.len(), rng);
         if particles[first].charge != particles[second].charge {
             let old_energy = hamiltonian.energy(particles, &[first, second]);
             self.swap_charges(particles, first, second);
