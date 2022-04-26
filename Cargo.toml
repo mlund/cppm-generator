@@ -3,12 +3,12 @@ name = "cppm-generator"
 description = "Generates charged patchy particles by Monte Carlo sampling on a sphere"
 version = "0.2.0"
 edition = "2021"
-authors = ["Mikael Lund"]
+authors = ["Mikael Lund <lyssky@icloud.com>"]
 homepage = "https://github.com/mlund/cppm-generator"
 repository = "https://github.com/mlund/cppm-generator"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-keywords = ["bio-colloids", "anisotropic-interactions", "patchy-particles", "monte-carlo-simulation", "electric-multipoles"]
+keywords = ["bio-colloids", "biophysics", "patchy-particles", "monte-carlo", "multipoles"]
 categories = ["command-line-utilities"]
 
 [[bin]]
