@@ -1,4 +1,5 @@
 [![Rust](https://github.com/mlund/cppm-generator/actions/workflows/rust.yml/badge.svg)](https://github.com/mlund/cppm-generator/actions/workflows/rust.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6487965.svg)](https://doi.org/10.5281/zenodo.6487965)
 
 # CPPM generator
 
