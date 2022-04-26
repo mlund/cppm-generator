@@ -1,0 +1,29 @@
+{
+    "title": "A Command Line Tool for Generating Charged Patchy Particle Models (CPPMs)",
+    "description": "This is a single command-line tool that generates spherical Charged Patchy Particle Models (CPPM) which mimic bio-colloidal particles, e.g. globular proteins. The tool, `cppm-generator`, generates CPPMs by placing neutral, positive, and negative particles on the surface of a sphere, and minimise the (free) energy using Metropolis-Hastings Monte Carlo sampling.",
+    "creators": [
+        {
+            "name": "Mikael Lund",
+            "affiliation": "Division of Theoretical Chemistry, Department of Chemistry, Lund University, Sweden",
+            "orcid": "0000-0001-8178-8175"
+        }
+    ],
+    "keywords": [
+        "bio-colloids",
+        "anisotropic interactions",
+        "patchy particles",
+        "monte carlo simulation",
+        "electric multipoles",
+        "rust programming"
+    ],
+    "related_identifiers": [
+        {
+            "scheme": "url",
+            "identifier": "https://github.com/mlund/cppm-generator",
+            "relation": "isSupplementTo"
+        }
+    ],
+    "license": "mit-license",
+    "access_right": "open",
+    "upload_type": "software"
+}
