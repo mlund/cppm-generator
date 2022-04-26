@@ -50,8 +50,9 @@ pub struct Particle {
     pub position: nalgebra::Vector3<f64>,
 }
 
-// associated functions: https://doc.rust-lang.org/rust-by-example/fn/methods.html
 impl Particle {
+    /// Updates the internal cartesian coordinates. Should be called whenever
+    /// the spherical coordinates are updated.
     fn update_cartesian(&mut self) {
         self.position = spherical_to_cartesian(self.phi, self.theta, self.radius);
     }
@@ -63,18 +64,19 @@ impl Particle {
         self.update_cartesian();
     }
 
-    /// Generate random angles and update cartesian coordinate
+    /// Generate random angles and update cartesian coordinate.
+    /// See also https://mathworld.wolfram.com/SpherePointPicking.html
     pub fn random_angles(&mut self) {
-        // see https://mathworld.wolfram.com/SpherePointPicking.html
         let phi = f64::acos(2.0 * random::<f64>() - 1.0);
         let theta = 2.0 * PI * random::<f64>();
         self.set_angles(phi, theta);
     }
 
-    /// Randomly displace theta and phi on a disc
+    /// Randomly displace theta and phi on a disc.
+    /// See related information:
+    /// - https://mathworld.wolfram.com/SpherePointPicking.html
+    /// - https://doi.org/10.1016/j.amc.2019.124670
     pub fn displace_angle(&mut self, dp: f64) {
-        // see https://mathworld.wolfram.com/SpherePointPicking.html
-        // https://doi.org/10.1016/j.amc.2019.124670
         let random_angle = 2.0 * PI * random::<f64>();
         let random_length = dp * random::<f64>();
         let new_phi = self.phi + f64::sin(random_angle) * random_length;
@@ -83,7 +85,8 @@ impl Particle {
     }
 }
 
-/// Generate particle vector with charged and neutral particles
+/// Generate particle vector with charged and neutral particles randomly
+/// placed at the surface of a sphere.
 pub fn generate_particles(
     radius: f64,
     num_total: usize,

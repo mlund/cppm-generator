@@ -35,7 +35,6 @@ use crate::particle::Particle;
 /// Metropolis-Hastings criterion for accepting / rejecting move
 ///
 /// # Arguments
-///
 /// * `energy_change` - New energy minus old energy in units of kT
 fn accept_move(energy_change: f64) -> bool {
     let acceptance_probability = f64::min(1.0, f64::exp(-energy_change));
@@ -186,9 +185,9 @@ impl MonteCarloMove for DisplaceParticle {
 pub struct SwapCharges;
 
 impl SwapCharges {
-    /// Swap charges of two particles given by their indices
-    ///
-    /// - @todo is there a more elegant way to do this using `swap`?
+    /// Swap charges of two particles given by their indices.
+    /// Todo list:
+    /// - is there a more elegant way to do this using `swap`?
     /// - Mutable charges: `let mut charges = particles.iter_mut().map(|i| &mut i.charge);`
     fn swap_charges(&self, particles: &mut [Particle], first: usize, second: usize) {
         let mut charge = particles[second].charge;
@@ -204,6 +203,7 @@ impl MonteCarloMove for SwapCharges {
         particles: &mut [Particle],
         rng: &mut ThreadRng,
     ) -> bool {
+        // generate two random particle indices
         let (first, second) = (0..particles.len())
             .choose_multiple(rng, 2)
             .iter()
@@ -217,10 +217,8 @@ impl MonteCarloMove for SwapCharges {
             self.swap_charges(particles, first, second);
             let new_energy = hamiltonian.energy(&particles, &[first, second]);
             let energy_change = new_energy - old_energy;
-
             if !accept_move(energy_change) {
-                // reject and...
-                self.swap_charges(particles, first, second); // ...swap back charges
+                self.swap_charges(particles, first, second); // restore old charges
                 return false;
             }
         }

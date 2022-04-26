@@ -19,6 +19,7 @@ Metropolis-Hastings Monte Carlo sampling.
 
 The default parameters produce an isotropic, charged particle similar to `P00` from Table 1 in
 [this](https://doi.org/10.48550/arXiv.1701.02457) publication.
+It is also possible to impose a target molecular dipole moment using the `--dipole` option.
 
 ~~~
 $ cppm-generator --help
@@ -48,7 +49,7 @@ OPTIONS:
 - [x] Command line interface
 - [x] Dipole moment analysis
 - [ ] External electric field to induce arbitrary patches
-- [x] Constrain to target dipole moment
+- [x] Constrain to target dipole moment w. harmonic potential
 - [x] Written in Rust
 - [ ] Use [uon](https://crates.io/crates/uom) for dimensional analysis
 - [x] IO error handling
@@ -70,5 +71,5 @@ cargo install --path .
 
 ## Motivation
 
-Besides scientific use, this project is a first dive
+Besides some scientific use, this project is mainly a first dive
 into the Rust programming language.
