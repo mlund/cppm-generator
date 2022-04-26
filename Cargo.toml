@@ -4,10 +4,13 @@ description = "Generates charged patchy particles by Monte Carlo sampling on a s
 version = "0.2.0"
 edition = "2021"
 authors = ["Mikael Lund"]
+homepage = "https://github.com/mlund/cppm-generator"
 repository = "https://github.com/mlund/cppm-generator"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 include = ["LICENSE"]
 readme = "README.md"
+keywords = ["bio-colloids", "anisotropic interactions", "patchy particles", "monte carlo simulation", "electric multipoles", "rust programming"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -16,7 +16,13 @@ The figure below shows examples of interacting CPPMs taken from https://doi.org/
 on the surface of a sphere, and minimise the (free) energy using
 Metropolis-Hastings Monte Carlo sampling.
 
-## Command line usage:
+## Installing
+
+~~~ bash
+$ cargo install cppm-generator
+~~~
+
+## Usage
 
 The default parameters produce an isotropic, charged particle similar to `P00` from Table 1 in
 [this](https://doi.org/10.48550/arXiv.1701.02457) publication.
@@ -37,7 +43,7 @@ OPTIONS:
     -p, --plus <NUM_PLUS>                    Number of positive (+1e) particles [default: 29]
     -r, --radius <RADIUS>                    Sphere radius (Å) [default: 20.0]
     -s, --steps <STEPS>                      Number of Monte Carlo iterations [default: 10000]
-    -u, --dipole <TARGET_DIPOLE_MOMENT>      Target dipole moment (eÅ)
+    -u, --dipole <TARGET_DIPOLE_MOMENT>      Target dipole moment (Debye)
     -V, --version                            Print version information
 ~~~
 
@@ -56,19 +62,6 @@ OPTIONS:
 - [x] IO error handling
 - [ ] Unittests
 - [ ] Logging support
-
-## Building and running
-
-Building from source requires a [Rust installation](https://www.rust-lang.org/tools/install).
-
-~~~ bash
-cd cppm-generator/
-cargo build --release
-./target/release/cppm-generator --help
-
-# Optionally install in $HOME/.cargo/bin:
-cargo install --path .
-~~~
 
 ## Motivation
 
