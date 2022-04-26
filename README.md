@@ -1,4 +1,5 @@
 [![Rust](https://github.com/mlund/cppm-generator/actions/workflows/rust.yml/badge.svg)](https://github.com/mlund/cppm-generator/actions/workflows/rust.yml)
+[![RustClippy](https://github.com/mlund/cppm-generator/actions/workflows/rust-clippy.yml/badge.svg)](https://github.com/mlund/cppm-generator/actions/workflows/rust-clippy.yml)
 [![Crate](https://img.shields.io/crates/v/cppm-generator)](https://crates.io/crates/cppm-generator)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6487965.svg)](https://doi.org/10.5281/zenodo.6487965)
 
