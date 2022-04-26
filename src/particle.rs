@@ -34,7 +34,7 @@ fn spherical_to_cartesian<T: Float>(phi: T, theta: T, radius: T) -> Vector3<T> {
 }
 
 /// Particle data incl. position, charge etc.
-#[derive(Default, Clone, Debug, Builder)]
+#[derive(Clone, Debug, Builder)]
 pub struct Particle {
     pub charge: f64,
     /// 0 ≤ φ < 2π (ISO standard)

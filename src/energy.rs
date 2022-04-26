@@ -87,7 +87,7 @@ impl<T: PairPotential> Nonbonded<T> {
 
     /// Energy of swapping two particles
     fn swap_move_energy(&self, particles: &[Particle], first: usize, second: usize) -> f64 {
-        let mut energy: f64 = self
+        let mut energy = self
             .pair_potential
             .energy(&particles[first], &particles[second]);
         for (i, particle) in particles.iter().enumerate() {
@@ -114,12 +114,20 @@ impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
 /// External potential to approach a specified dipole moment by
 /// applying a harmonic potential on the difference from a
 /// target dipole moment.
-#[derive(Default, Builder)]
 pub struct ConstrainDipole {
     /// Force constant to use - the higher value, the less fluctuations
     spring_constant: f64,
     /// Dipole moment to approach (eÅ)
     target_dipole_moment: f64,
+}
+
+impl ConstrainDipole {
+    pub fn new(spring_constant: f64, target_dipole_moment: f64) -> Self {
+        Self {
+            spring_constant,
+            target_dipole_moment,
+        }
+    }
 }
 
 impl EnergyTerm for ConstrainDipole {

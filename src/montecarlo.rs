@@ -152,7 +152,7 @@ impl MonteCarloMove for Propagator {
 
 /// Randomly displace spherical coordinates of a single particle
 /// The move is done on a unit disc around the old position
-#[derive(Default, Builder)]
+#[derive(Builder)]
 pub struct DisplaceParticle {
     #[builder(default = "0.01")]
     angular_displacement: f64,

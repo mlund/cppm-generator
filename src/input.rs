@@ -21,7 +21,7 @@
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[clap(version, about, long_about = None, author = "Copyright (c) 2022 Mikael Lund - MIT Licensed")]
 pub struct Args {
     /// Output structure (.xyz or .pqr)
     #[clap(short = 'o', long)]

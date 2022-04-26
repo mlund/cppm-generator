@@ -50,13 +50,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let pair_potential = energy::Coulomb::new(args.bjerrum_length);
     hamiltonian.push(energy::Nonbonded::new(pair_potential));
     if args.target_dipole_moment.is_some() {
-        hamiltonian.push(
-            energy::ConstrainDipoleBuilder::default()
-                .spring_constant(100.0)
-                .target_dipole_moment(args.target_dipole_moment.unwrap())
-                .build()
-                .unwrap(),
-        )
+        hamiltonian.push(energy::ConstrainDipole::new(
+            100.0,
+            args.target_dipole_moment.unwrap(),
+        ))
     }
 
     let mut moments = Moments::default();
