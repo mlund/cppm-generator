@@ -37,7 +37,7 @@ OPTIONS:
     -p, --plus <NUM_PLUS>                    Number of positive (+1e) particles [default: 29]
     -r, --radius <RADIUS>                    Sphere radius (Å) [default: 20.0]
     -s, --steps <STEPS>                      Number of Monte Carlo iterations [default: 10000]
-    -u, --dipole <TARGET_DIPOLE_MOMENT>      Target dipole moment (eÅ)
+    -u, --dipole <TARGET_DIPOLE_MOMENT>      Target dipole moment (Debye)
     -V, --version                            Print version information
 ~~~
 
