@@ -89,9 +89,11 @@ impl Moments {
             coc.norm()
         );
 
+        let mu = self.dipole_moment_scalar / self.number_of_samples as f64;
         println!(
-            "dipole moment 𝛍               = ⟨|∑qᵢ𝐫ᵢ|⟩ = {:.1} eÅ",
-            self.dipole_moment_scalar / self.number_of_samples as f64
+            "mean dipole moment 𝛍          = ⟨|∑qᵢ𝐫ᵢ|⟩ = {:.1} eÅ = {:.1} D",
+            mu,
+            mu / 0.2081943
         );
     }
 }
