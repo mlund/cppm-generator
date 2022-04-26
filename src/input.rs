@@ -50,4 +50,8 @@ pub struct Args {
     /// Bjerrum length (Å)
     #[clap(short, long, default_value_t = 7.0)]
     pub bjerrum_length: f64,
+
+    /// Target dipole moment (eÅ)
+    #[clap(short = 'u', long = "--dipole", required = false)]
+    pub target_dipole_moment: Option<f64>,
 }

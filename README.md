@@ -35,6 +35,7 @@ OPTIONS:
     -p, --plus <NUM_PLUS>                    Number of positive (+1e) particles [default: 29]
     -r, --radius <RADIUS>                    Sphere radius (Å) [default: 20.0]
     -s, --steps <STEPS>                      Number of Monte Carlo iterations [default: 10000]
+    -u, --dipole <TARGET_DIPOLE_MOMENT>      Target dipole moment (eÅ)
     -V, --version                            Print version information
 ~~~
 
@@ -46,7 +47,8 @@ OPTIONS:
 - [x] Output to `.xyz` and `.pqr` files
 - [x] Command line interface
 - [x] Dipole moment analysis
-- [ ] External electric field to induce patches moments
+- [ ] External electric field to induce arbitrary patches
+- [x] Constrain to target dipole moment
 - [x] Written in Rust
 - [ ] Use [uon](https://crates.io/crates/uom) for dimensional analysis
 - [x] IO error handling

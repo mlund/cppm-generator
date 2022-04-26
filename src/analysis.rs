@@ -52,7 +52,7 @@ fn charge_center(particles: &[Particle]) -> Vector3<f64> {
 }
 
 /// Dipole moment with origin at (0,0,0)
-fn dipole_moment(particles: &[Particle]) -> Vector3<f64> {
+pub fn dipole_moment(particles: &[Particle]) -> Vector3<f64> {
     particles.iter().map(|i| i.charge * i.position).sum()
 }
 
@@ -63,22 +63,16 @@ pub struct Moments {
     geometric_center: nalgebra::Vector3<f64>,
     charge_center: nalgebra::Vector3<f64>,
     dipole_moment: nalgebra::Vector3<f64>,
+    dipole_moment_scalar: f64,
 }
 
 impl Moments {
-    pub fn new() -> Self {
-        Self {
-            number_of_samples: 0,
-            geometric_center: Vector3::new(0.0, 0.0, 0.0),
-            charge_center: Vector3::new(0.0, 0.0, 0.0),
-            dipole_moment: Vector3::new(0.0, 0.0, 0.0),
-        }
-    }
-
     pub fn sample(&mut self, particles: &[Particle]) {
         self.geometric_center += geometric_center(particles).expect("no particles to sample");
         self.charge_center += charge_center(particles);
-        self.dipole_moment += dipole_moment(particles);
+        let mu = dipole_moment(particles);
+        self.dipole_moment += mu;
+        self.dipole_moment_scalar += mu.norm();
         self.number_of_samples += 1;
     }
 
@@ -95,10 +89,9 @@ impl Moments {
             coc.norm()
         );
 
-        let mu = self.dipole_moment.transpose() / self.number_of_samples as f64;
         println!(
-            "dipole moment 𝛍               = |⟨∑qᵢ𝐫ᵢ⟩| = {:.1} eÅ",
-            mu.norm()
+            "dipole moment 𝛍               = ⟨|∑qᵢ𝐫ᵢ|⟩ = {:.1} eÅ",
+            self.dipole_moment_scalar / self.number_of_samples as f64
         );
     }
 }

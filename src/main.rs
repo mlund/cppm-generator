@@ -41,13 +41,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = input::Args::parse();
     let mut rng = rand::thread_rng();
 
+    // Make particles
     let mut particles =
         generate_particles(args.radius, args.num_total, args.num_plus, args.num_minus);
 
+    // Make Hamiltonian
+    let mut hamiltonian = energy::Hamiltonian::default();
     let pair_potential = energy::Coulomb::new(args.bjerrum_length);
-    let hamiltonian = energy::Nonbonded::new(pair_potential);
-    let mut moments = Moments::new();
+    hamiltonian.push(energy::Nonbonded::new(pair_potential));
+    if args.target_dipole_moment.is_some() {
+        hamiltonian.push(
+            energy::ConstrainDipoleBuilder::default()
+                .spring_constant(100.0)
+                .target_dipole_moment(args.target_dipole_moment.unwrap())
+                .build()
+                .unwrap(),
+        )
+    }
 
+    let mut moments = Moments::default();
     let mut propagator = montecarlo::Propagator::default();
     propagator.push(
         DisplaceParticleBuilder::default()

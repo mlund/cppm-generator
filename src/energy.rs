@@ -110,3 +110,46 @@ impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
         }
     }
 }
+
+/// External potential to approach a specified dipole moment by
+/// applying a harmonic potential on the difference from a
+/// target dipole moment.
+#[derive(Default, Builder)]
+pub struct ConstrainDipole {
+    /// Force constant to use - the higher value, the less fluctuations
+    spring_constant: f64,
+    /// Dipole moment to approach (eÅ)
+    target_dipole_moment: f64,
+}
+
+impl EnergyTerm for ConstrainDipole {
+    fn energy(&self, particles: &[Particle], _indices: &[usize]) -> f64 {
+        if self.spring_constant > 0.0 {
+            let current_dipole_moment = crate::analysis::dipole_moment(particles).norm();
+            return self.spring_constant
+                * f64::powi(current_dipole_moment - self.target_dipole_moment, 2);
+        }
+        0.0
+    }
+}
+
+/// Aggregates and sums a dynamic number of energy terms
+#[derive(Default)]
+pub struct Hamiltonian {
+    energy_terms: Vec<Box<dyn EnergyTerm>>,
+}
+
+impl Hamiltonian {
+    pub fn push<T: 'static + EnergyTerm>(&mut self, energy_term: T) {
+        self.energy_terms.push(Box::new(energy_term));
+    }
+}
+
+impl EnergyTerm for Hamiltonian {
+    fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64 {
+        self.energy_terms
+            .iter()
+            .map(|u| u.energy(particles, indices))
+            .sum()
+    }
+}
