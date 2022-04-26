@@ -66,7 +66,7 @@ impl<T: PairPotential> Nonbonded<T> {
     /// Sum all pair interactions in vector of particles (kT)
     #[allow(dead_code)]
     pub fn system_energy(&self, particles: &[Particle]) -> f64 {
-        let pair_energy = |v: Vec<&Particle>| self.pair_potential.energy(&v[0], &v[1]);
+        let pair_energy = |v: Vec<&Particle>| self.pair_potential.energy(v[0], v[1]);
         particles
             .iter()
             .combinations(2)
@@ -94,8 +94,8 @@ impl<T: PairPotential> Nonbonded<T> {
             if i == first || i == second {
                 continue;
             }
-            energy += self.pair_potential.energy(&particle, &particles[first])
-                + self.pair_potential.energy(&particle, &particles[second]);
+            energy += self.pair_potential.energy(particle, &particles[first])
+                + self.pair_potential.energy(particle, &particles[second]);
         }
         energy
     }
@@ -104,8 +104,8 @@ impl<T: PairPotential> Nonbonded<T> {
 impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
     fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64 {
         match indices.len() {
-            1 => return self.particle_energy(particles, indices[0]),
-            2 => return self.swap_move_energy(particles, indices[0], indices[1]),
+            1 => self.particle_energy(particles, indices[0]),
+            2 => self.swap_move_energy(particles, indices[0], indices[1]),
             _ => panic!("unknown energy request"),
         }
     }

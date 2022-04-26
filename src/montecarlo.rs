@@ -145,8 +145,7 @@ impl MonteCarloMove for Propagator {
         rng: &mut ThreadRng,
     ) -> bool {
         let random_move = self.moves.choose_mut(rng).unwrap();
-        let accepted = random_move.do_move(hamiltonian, particles, rng);
-        accepted
+        random_move.do_move(hamiltonian, particles, rng)
     }
 }
 
@@ -167,10 +166,10 @@ impl MonteCarloMove for DisplaceParticle {
     ) -> bool {
         let index = rng.gen_range(0..particles.len());
         let particle_backup = particles[index].to_owned();
-        let old_energy = hamiltonian.energy(&particles, &[index]);
+        let old_energy = hamiltonian.energy(particles, &[index]);
 
         particles[index].displace_angle(self.angular_displacement);
-        let new_energy = hamiltonian.energy(&particles, &[index]);
+        let new_energy = hamiltonian.energy(particles, &[index]);
         let energy_change = new_energy - old_energy;
         if !accept_move(energy_change) {
             particles[index].clone_from(&particle_backup); // restore
@@ -213,9 +212,9 @@ impl MonteCarloMove for SwapCharges {
         assert!(first != second);
 
         if particles[first].charge != particles[second].charge {
-            let old_energy = hamiltonian.energy(&particles, &[first, second]);
+            let old_energy = hamiltonian.energy(particles, &[first, second]);
             self.swap_charges(particles, first, second);
-            let new_energy = hamiltonian.energy(&particles, &[first, second]);
+            let new_energy = hamiltonian.energy(particles, &[first, second]);
             let energy_change = new_energy - old_energy;
             if !accept_move(energy_change) {
                 self.swap_charges(particles, first, second); // restore old charges
