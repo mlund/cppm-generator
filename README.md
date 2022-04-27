@@ -49,7 +49,7 @@ OPTIONS:
     -V, --version                            Print version information
 ~~~
 
-## Details and status:
+## Details and status
 
 - [x] Random walk on a sphere using spherical coordinates
 - [x] Particle-particle interactions using a Coulomb/softcore potential

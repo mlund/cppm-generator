@@ -23,8 +23,10 @@ use num_traits::Float;
 use rand::random;
 use std::f64::consts::PI;
 
+///
 /// Convert spherical coordinate to cartesian coordinate
 /// See also https://gist.github.com/theypsilon/f09305889e1fd5aa182999af3bad10b9
+///
 fn spherical_to_cartesian<T: Float>(phi: T, theta: T, radius: T) -> Vector3<T> {
     Vector3::new(
         radius * phi.sin() * theta.cos(),
@@ -33,7 +35,9 @@ fn spherical_to_cartesian<T: Float>(phi: T, theta: T, radius: T) -> Vector3<T> {
     )
 }
 
+///
 /// Particle data incl. position, charge etc.
+///
 #[derive(Clone, Debug, Builder)]
 pub struct Particle {
     pub charge: f64,
@@ -51,31 +55,39 @@ pub struct Particle {
 }
 
 impl Particle {
+    ///
     /// Updates the internal cartesian coordinates. Should be called whenever
     /// the spherical coordinates are updated.
+    ///
     fn update_cartesian(&mut self) {
         self.position = spherical_to_cartesian(self.phi, self.theta, self.radius);
     }
 
+    ///
     /// Set angles and update cartesian coordinate
+    ///
     pub fn set_angles(&mut self, phi: f64, theta: f64) {
         self.phi = phi;
         self.theta = theta;
         self.update_cartesian();
     }
 
+    ///
     /// Generate random angles and update cartesian coordinate.
     /// See also https://mathworld.wolfram.com/SpherePointPicking.html
+    ///
     pub fn random_angles(&mut self) {
         let phi = f64::acos(2.0 * random::<f64>() - 1.0);
         let theta = 2.0 * PI * random::<f64>();
         self.set_angles(phi, theta);
     }
 
+    ///
     /// Randomly displace theta and phi on a disc.
     /// See related information:
     /// - https://mathworld.wolfram.com/SpherePointPicking.html
     /// - https://doi.org/10.1016/j.amc.2019.124670
+    ///
     pub fn displace_angle(&mut self, dp: f64) {
         let random_angle = 2.0 * PI * random::<f64>();
         let random_length = dp * random::<f64>();
@@ -85,8 +97,10 @@ impl Particle {
     }
 }
 
+///
 /// Generate particle vector with charged and neutral particles randomly
 /// placed at the surface of a sphere.
+///
 pub fn generate_particles(
     radius: f64,
     num_total: usize,

@@ -22,17 +22,23 @@ use crate::particle::Particle;
 use nalgebra::Vector3;
 use std::f64::consts::PI;
 
+///
 /// Total charge
+///
 fn net_charge(particles: &[Particle]) -> f64 {
     particles.iter().map(|i| i.charge).sum::<f64>()
 }
 
+///
 /// Total absolute charge
+///
 fn absolute_charge(particles: &[Particle]) -> f64 {
     particles.iter().map(|i| f64::abs(i.charge)).sum::<f64>()
 }
 
+///
 /// Calculates the geometric center
+///
 fn geometric_center(particles: &[Particle]) -> Option<Vector3<f64>> {
     if particles.is_empty() {
         return None;
@@ -40,7 +46,9 @@ fn geometric_center(particles: &[Particle]) -> Option<Vector3<f64>> {
     Some(particles.iter().map(|i| i.position).sum::<Vector3<f64>>() / particles.len() as f64)
 }
 
+///
 /// Calculates the center of charge
+///
 fn charge_center(particles: &[Particle]) -> Vector3<f64> {
     let absolute_charge = particles.iter().map(|i| f64::abs(i.charge)).sum::<f64>();
 
@@ -51,12 +59,16 @@ fn charge_center(particles: &[Particle]) -> Vector3<f64> {
         / absolute_charge
 }
 
+///
 /// Dipole moment with origin at (0,0,0)
+///
 pub fn dipole_moment(particles: &[Particle]) -> Vector3<f64> {
     particles.iter().map(|i| i.charge * i.position).sum()
 }
 
+///
 /// Analyze mean geometric center; charge center; and dipole moment
+///
 #[derive(Default)]
 pub struct Moments {
     number_of_samples: u32,
@@ -98,7 +110,9 @@ impl Moments {
     }
 }
 
+///
 /// Print cppm particles such as surface charge density, net charge etc.
+///
 pub fn print_global_properties(particles: &[Particle]) {
     let radius = particles.first().unwrap().radius;
     let surface_area = 4.0 * PI * radius * radius;

@@ -111,9 +111,11 @@ impl<T: PairPotential> EnergyTerm for Nonbonded<T> {
     }
 }
 
+///
 /// External potential to approach a specified dipole moment by
-/// applying a harmonic potential on the difference from a
+/// applying a harmonic potential on the deviation from a
 /// target dipole moment.
+///
 pub struct ConstrainDipole {
     /// Force constant to use - the higher value, the less fluctuations
     spring_constant: f64,
@@ -141,19 +143,23 @@ impl EnergyTerm for ConstrainDipole {
     }
 }
 
+///
 /// Aggregates and sums a dynamic number of energy terms
+///
 #[derive(Default)]
 pub struct Hamiltonian {
     energy_terms: Vec<Box<dyn EnergyTerm>>,
 }
 
 impl Hamiltonian {
+    /// Register a new energy term
     pub fn push<T: 'static + EnergyTerm>(&mut self, energy_term: T) {
         self.energy_terms.push(Box::new(energy_term));
     }
 }
 
 impl EnergyTerm for Hamiltonian {
+    /// Sum all energy terms (in units of kT)
     fn energy(&self, particles: &[Particle], indices: &[usize]) -> f64 {
         self.energy_terms
             .iter()

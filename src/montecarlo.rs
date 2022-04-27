@@ -60,11 +60,11 @@ mod tests {
 }
 
 ///
-/// Trait for Monte Carlo moves
+/// Interface for Monte Carlo move algorithms that all
+/// move schemes should implement.
 ///
-pub trait MonteCarloMove {
-    /// Perform a Metropolis-Hastings Monte Carlo move.
-    /// Returns true if the move was successful.
+pub trait MoveAlgorithm {
+    /// Perform a Metropolis-Hastings Monte Carlo move; returns true if the move was successful.
     fn do_move(
         &mut self,
         hamiltonian: &dyn EnergyTerm,
@@ -73,63 +73,54 @@ pub trait MonteCarloMove {
     ) -> bool;
 }
 
-/// Properties applicable for all moves
-trait MoveProperties {
-    /// Average fraction of accepted moves
-    fn mean_acceptance(&self) -> f64;
-}
-
-/// Trait with both a move function and acceptance statistics
-trait MonteCarloMoveExpanded: MonteCarloMove + MoveProperties {}
-
-impl<T: MonteCarloMove + MoveProperties> MonteCarloMoveExpanded for T {}
-
-/// Fully functional MC move with a move function
-/// and tracking of acceptance.
-struct WrappedMonteCarloMove<T: MonteCarloMove> {
+///
+/// Final Monte Carlo move that in addition to a move algorithm, also track
+/// acceptance statistics. Instances of `MonteCarloMove` is normally created
+/// by `Propagator`
+///
+struct MonteCarloMove {
     acceptance_ratio: average::Mean,
-    monte_carlo_move: T,
+    move_algorithm: Box<dyn MoveAlgorithm>,
 }
 
-impl<T: MonteCarloMove> WrappedMonteCarloMove<T> {
-    pub fn new(monte_carlo_move: T) -> Self {
-        WrappedMonteCarloMove {
+impl MonteCarloMove {
+    pub fn new(move_algorithm: Box<dyn MoveAlgorithm>) -> Self {
+        MonteCarloMove {
             acceptance_ratio: average::Mean::new(),
-            monte_carlo_move,
+            move_algorithm,
         }
+    }
+    /// Ratio of accepted vs. total Monte Carlo moves
+    pub fn mean_acceptance(&self) -> f64 {
+        self.acceptance_ratio.mean()
     }
 }
 
-impl<T: MonteCarloMove> MonteCarloMove for WrappedMonteCarloMove<T> {
+impl MoveAlgorithm for MonteCarloMove {
     fn do_move(
         &mut self,
         hamiltonian: &dyn EnergyTerm,
         particles: &mut [Particle],
         rng: &mut ThreadRng,
     ) -> bool {
-        let accepted = self.monte_carlo_move.do_move(hamiltonian, particles, rng);
+        let accepted = self.move_algorithm.do_move(hamiltonian, particles, rng);
         self.acceptance_ratio.add(accepted as usize as f64);
         accepted
     }
 }
-
-impl<T: MonteCarloMove> MoveProperties for WrappedMonteCarloMove<T> {
-    fn mean_acceptance(&self) -> f64 {
-        self.acceptance_ratio.mean()
-    }
-}
-
-/// Aggregator for multiple Monte Carlo moves picked by random
+///
+/// Aggregator for multiple Monte Carlo moves
+///
 #[derive(Default)]
 pub struct Propagator {
-    moves: Vec<Box<dyn MonteCarloMoveExpanded>>,
+    moves: Vec<MonteCarloMove>,
 }
 
 impl Propagator {
     // see also here: https://stackoverflow.com/questions/71900568/returning-mutable-reference-of-trait-in-vector
-    pub fn push<T: 'static + MonteCarloMove>(&mut self, mc_move: T) {
-        let wrapped_move = WrappedMonteCarloMove::new(mc_move);
-        self.moves.push(Box::new(wrapped_move));
+    pub fn push<T: 'static + MoveAlgorithm>(&mut self, move_algorithm: T) {
+        self.moves
+            .push(MonteCarloMove::new(Box::new(move_algorithm)));
     }
 
     pub fn print(&self) {
@@ -143,7 +134,10 @@ impl Propagator {
     }
 }
 
-impl MonteCarloMove for Propagator {
+impl MoveAlgorithm for Propagator {
+    ///
+    /// Run randomly selected move
+    ///
     fn do_move(
         &mut self,
         hamiltonian: &dyn EnergyTerm,
@@ -155,15 +149,17 @@ impl MonteCarloMove for Propagator {
     }
 }
 
+///
 /// Randomly displace spherical coordinates of a single particle
 /// The move is done on a unit disc around the old position
+///
 #[derive(Builder)]
 pub struct DisplaceParticle {
     #[builder(default = "0.01")]
     angular_displacement: f64,
 }
 
-impl MonteCarloMove for DisplaceParticle {
+impl MoveAlgorithm for DisplaceParticle {
     fn do_move(
         &mut self,
         hamiltonian: &dyn EnergyTerm,
@@ -185,22 +181,33 @@ impl MonteCarloMove for DisplaceParticle {
     }
 }
 
+///
 /// Monte Carlo move to swap charges between two randomly selected particles
+///
 #[derive(Default)]
 pub struct SwapCharges;
 
 impl SwapCharges {
+    ///
     /// Swap charges of two particles given by their indices.
-    /// Todo list:
-    /// - is there a more elegant way to do this using `swap`?
-    /// - Mutable charges: `let mut charges = particles.iter_mut().map(|i| &mut i.charge);`
-    fn swap_charges(&self, particles: &mut [Particle], first: usize, second: usize) {
+    /// This can alternatively be done with the following unsafe code:
+    /// ~~~
+    /// unsafe {
+    ///     let a : *mut f64 = &mut particles[first].charge;
+    ///     let b : *mut f64 = &mut particles[second].charge;
+    ///     std::ptr::swap(a, b);
+    /// }
+    /// ~~~
+    ///
+    fn swap_charges(particles: &mut [Particle], first: usize, second: usize) {
         let mut charge = particles[second].charge;
         std::mem::swap(&mut particles[first].charge, &mut charge);
         std::mem::swap(&mut particles[second].charge, &mut charge);
     }
 
+    ///
     /// Pick two, random and non-repeating particle indices
+    ///
     fn random_indices(number_of_particles: usize, rng: &mut ThreadRng) -> (usize, usize) {
         assert!(number_of_particles >= 2);
         let (first, second) = (0..number_of_particles)
@@ -214,7 +221,7 @@ impl SwapCharges {
     }
 }
 
-impl MonteCarloMove for SwapCharges {
+impl MoveAlgorithm for SwapCharges {
     fn do_move(
         &mut self,
         hamiltonian: &dyn EnergyTerm,
@@ -224,11 +231,11 @@ impl MonteCarloMove for SwapCharges {
         let (first, second) = Self::random_indices(particles.len(), rng);
         if particles[first].charge != particles[second].charge {
             let old_energy = hamiltonian.energy(particles, &[first, second]);
-            self.swap_charges(particles, first, second);
+            Self::swap_charges(particles, first, second);
             let new_energy = hamiltonian.energy(particles, &[first, second]);
             let energy_change = new_energy - old_energy;
             if !accept_move(energy_change) {
-                self.swap_charges(particles, first, second); // restore old charges
+                Self::swap_charges(particles, first, second); // restore old charges
                 return false;
             }
         }
