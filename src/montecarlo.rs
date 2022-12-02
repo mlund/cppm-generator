@@ -52,10 +52,10 @@ mod tests {
     #[test]
     fn test_accept_move() {
         let max_exponent = f64::ln(f64::max_value());
-        assert_eq!(accept_move(-1.0), true);
-        assert_eq!(accept_move(0.0), true);
-        assert_eq!(accept_move(max_exponent), false);
-        assert_eq!(accept_move(max_exponent * 1.1), false);
+        assert!(accept_move(-1.0));
+        assert!(accept_move(0.0));
+        assert!(!accept_move(max_exponent));
+        assert!(!accept_move(max_exponent * 1.1));
     }
 }
 
