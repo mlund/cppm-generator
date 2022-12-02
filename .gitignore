@@ -3,3 +3,4 @@
 *.xyz
 *.vmd
 *~
+.DS_Store
