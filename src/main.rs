@@ -73,7 +73,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         ProgressStyle::default_bar()
             .template(
                 "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({eta})",
-            ).unwrap()
+            )
+            .unwrap()
             .progress_chars("#>-"),
     );
 
