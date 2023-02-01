@@ -20,7 +20,7 @@ path = "src/main.rs"
 [dependencies]
 rand = "0.8"
 clap = { version = "4.0", features = ["derive"] }
-nalgebra = "0.31"
+nalgebra = "0.32"
 num-traits = "0.2"
 average = "0.13"
 itertools = "0.10"
