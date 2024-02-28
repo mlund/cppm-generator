@@ -65,7 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .build()
             .unwrap(),
     );
-    propagator.push(SwapCharges::default());
+    propagator.push(SwapCharges);
 
     // customise progress bar
     let bar = ProgressBar::new(args.steps as u64);
