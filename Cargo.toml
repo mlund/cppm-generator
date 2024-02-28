@@ -15,6 +15,11 @@ categories = ["command-line-utilities"]
 name = "cppm-generator"
 path = "src/main.rs"
 
+[profile.release]
+strip = true  # Automatically strip symbols from the binary.
+lto = true
+codegen-units = 1
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -26,4 +31,4 @@ average = "0.14"
 itertools = "0.12"
 approx = "0.5"
 indicatif = "0.17"
-derive_builder = "0.12"
+derive_builder = "0.13"
